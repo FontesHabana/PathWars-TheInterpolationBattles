@@ -6,9 +6,12 @@ paths across the game field.
 """
 
 from enum import Enum, auto
-from typing import List, Optional, Tuple
+from typing import TYPE_CHECKING, List, Optional, Tuple
 
 from entities.base import Entity, EntityState, EntityType, Vector2
+
+if TYPE_CHECKING:
+    from core.effects import StatusEffect
 
 
 class EnemyType(Enum):
@@ -68,6 +71,7 @@ class Enemy(Entity):
 
         self._path: List[Tuple[float, float]] = path
         self._path_index: float = 0.0
+        self._active_effects: List["StatusEffect"] = []
         self.state = EntityState.ACTIVE
 
     @property
@@ -125,6 +129,85 @@ class Enemy(Entity):
         if self._health <= 0:
             self.state = EntityState.DEAD
 
+    @property
+    def active_effects(self) -> List["StatusEffect"]:
+        """Get the list of active status effects."""
+        return self._active_effects
+
+    def apply_effect(self, effect: "StatusEffect") -> None:
+        """
+        Apply a status effect to this enemy.
+
+        If an effect of the same type already exists, refreshes the duration
+        if the new effect has a longer duration.
+
+        Args:
+            effect: The status effect to apply.
+        """
+        # Import here to avoid circular import
+        from core.effects import StatusEffect
+
+        # Check if same effect type already exists
+        for existing in self._active_effects:
+            if existing.effect_type == effect.effect_type:
+                # Refresh duration if new effect is longer
+                if effect.duration > existing.duration:
+                    existing.duration = effect.duration
+                    existing.value = effect.value
+                return
+
+        # Add new effect (create a copy to avoid sharing state)
+        self._active_effects.append(
+            StatusEffect(effect.effect_type, effect.duration, effect.value)
+        )
+
+    def update_effects(self, dt: float) -> None:
+        """
+        Update all active status effects, removing expired ones.
+
+        Args:
+            dt: Delta time since last update in seconds.
+        """
+        # Update durations and filter out expired effects
+        remaining_effects: List["StatusEffect"] = []
+        for effect in self._active_effects:
+            effect.duration -= dt
+            if effect.duration > 0:
+                remaining_effects.append(effect)
+        self._active_effects = remaining_effects
+
+    def is_stunned(self) -> bool:
+        """
+        Check if the enemy is currently stunned.
+
+        Returns:
+            True if the enemy has an active stun effect, False otherwise.
+        """
+        # Import here to avoid circular import
+        from core.effects import EffectType
+
+        for effect in self._active_effects:
+            if effect.effect_type == EffectType.STUN:
+                return True
+        return False
+
+    def get_slow_multiplier(self) -> float:
+        """
+        Get the current speed multiplier from slow effects.
+
+        Returns:
+            Speed multiplier from 0.0 to 1.0 (1.0 = no slow, 0.5 = 50% slow).
+        """
+        # Import here to avoid circular import
+        from core.effects import EffectType
+
+        multiplier = 1.0
+        for effect in self._active_effects:
+            if effect.effect_type == EffectType.SLOW:
+                # value represents the slow percentage (0.5 = 50% slow)
+                multiplier = min(multiplier, 1.0 - effect.value)
+        return max(0.0, multiplier)
+
     def update(self, dt: float) -> None:
         """
         Update enemy position along the path.
@@ -132,11 +215,21 @@ class Enemy(Entity):
         Args:
             dt: Delta time since last update in seconds.
         """
+        # Update status effects first
+        self.update_effects(dt)
+
         if self.state == EntityState.DEAD or len(self._path) < 2:
             return
 
+        # Skip movement if stunned
+        if self.is_stunned():
+            return
+
+        # Calculate effective speed with slow modifier
+        effective_speed = self._speed * self.get_slow_multiplier()
+
         # Advance along the path based on speed and delta time
-        self._path_index += self._speed * dt
+        self._path_index += effective_speed * dt
 
         # Clamp to path bounds
         if self._path_index >= len(self._path) - 1:
