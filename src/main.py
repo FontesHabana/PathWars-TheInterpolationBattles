@@ -22,6 +22,8 @@ from graphics.assets import AssetManager
 from entities.factory import EntityFactory
 from entities.enemy import EnemyType, Enemy
 from ui.manager import UIManager
+from ui.curve_editor import CurveEditorUI
+from core.curve_state import CurveState
 
 
 def main() -> None:
@@ -45,19 +47,25 @@ def main() -> None:
     # Initialize Wave Manager
     wave_manager = WaveManager()
     current_wave_number = 0  # Track which wave we're on (0 = not started)
-    
-    # Default enemy path in GRID COORDINATES (0-19 range, matching grid size)
-    # Enemies will be rendered in isometric projection by Renderer.cart_to_iso()
-    default_path = [
-        (0.0, 10.0),     # Start from left edge, middle row
-        (5.0, 10.0),     # Move right
-        (5.0, 5.0),      # Turn up
-        (10.0, 5.0),     # Move right
-        (10.0, 15.0),    # Turn down
-        (15.0, 15.0),    # Move right
-        (15.0, 10.0),    # Turn up
-        (19.0, 10.0),    # End at right edge
-    ]
+
+    # Initialize Curve Editor
+    curve_state = CurveState()
+    # Add default control points in GRID coordinates (0-19)
+    curve_state.add_point(0.0, 10.0)
+    curve_state.add_point(5.0, 10.0)
+    curve_state.add_point(10.0, 5.0)
+    curve_state.add_point(15.0, 15.0)
+    curve_state.add_point(19.0, 10.0)
+
+    curve_editor = CurveEditorUI(SCREEN_WIDTH, SCREEN_HEIGHT, curve_state)
+
+    def get_enemy_path() -> list:
+        """Get enemy path from curve editor (updated dynamically).
+
+        Returns:
+            List of (x, y) tuples representing the interpolated path.
+        """
+        return curve_state.get_interpolated_path(100)
 
     
     # Wave event callbacks
@@ -109,6 +117,11 @@ def main() -> None:
             # UI handles event first
             if ui_manager.handle_event(event):
                 continue  # Event consumed by UI
+
+            # During PLANNING phase, let curve editor handle events
+            if game_state.current_phase == GamePhase.PLANNING:
+                if curve_editor.handle_event(event):
+                    continue  # Event consumed by curve editor
                 
             # Game world handles event
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
@@ -138,7 +151,7 @@ def main() -> None:
             if not wave_manager.is_active:
                 current_wave_number += 1
                 if current_wave_number <= wave_manager.total_waves:
-                    wave_manager.start_wave(current_wave_number, default_path)
+                    wave_manager.start_wave(current_wave_number, get_enemy_path())
             
             # Update wave manager and spawn enemies
             new_enemies = wave_manager.update(dt)
@@ -158,6 +171,15 @@ def main() -> None:
             
         # Draw
         renderer.render(game_state, combat_manager)
+
+        # Draw curve editor during PLANNING phase
+        if game_state.current_phase == GamePhase.PLANNING:
+            path = curve_state.get_interpolated_path(100)
+            if len(path) >= 2:
+                renderer.draw_curve(path, color=(255, 100, 100), width=2)
+            curve_editor.draw(screen)
+            curve_editor.draw_control_points(screen)
+
         ui_manager.draw(screen)
         pygame.display.flip()
         
