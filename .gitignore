@@ -36,3 +36,7 @@ ENV/
 
 # Project specific
 *.log
+
+
+#Task
+Tasks.md
