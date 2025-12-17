@@ -103,23 +103,30 @@ class NetworkManager:
             except Exception as e:
                 logger.error(f"Error in observer callback: {e}")
 
-    def start_host(self, port: int = 5555) -> bool:
+    def start_host(self, port: int = 5555, bind_address: str = '127.0.0.1') -> bool:
         """
         Start as host (server) and listen for incoming connections.
 
         Args:
             port: Port number to listen on.
+            bind_address: IP address to bind to. Defaults to '127.0.0.1' (localhost)
+                         for security. Use '0.0.0.0' to accept connections from any
+                         network interface (LAN/WAN), but be aware of security implications.
 
         Returns:
             True if host started successfully, False otherwise.
+
+        Security Note:
+            Binding to '0.0.0.0' exposes the server to all network interfaces,
+            which may pose security risks. Only use this for trusted LAN environments.
         """
         try:
             self.role = 'host'
             self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            self.socket.bind(('0.0.0.0', port))
+            self.socket.bind((bind_address, port))
             self.socket.listen(1)
-            logger.info(f"Host started on port {port}, waiting for client...")
+            logger.info(f"Host started on {bind_address}:{port}, waiting for client...")
 
             # Accept connection (blocking)
             self.client_socket, addr = self.socket.accept()
