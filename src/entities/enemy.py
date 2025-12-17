@@ -40,6 +40,20 @@ class Enemy(Entity):
         reward: Gold/currency awarded when defeated.
     """
     
+    # Type-specific modifiers
+    TYPE_MODIFIERS = {
+        EnemyType.STUDENT: {
+            'speed_multiplier': 1.0,
+            'health_multiplier': 1.0,
+            'reward_multiplier': 1.0
+        },
+        EnemyType.VARIABLE_X: {
+            'speed_multiplier': 1.5,
+            'health_multiplier': 0.7,
+            'reward_multiplier': 1.2
+        }
+    }
+    
     def __init__(
         self,
         position: Vector2,
@@ -71,10 +85,11 @@ class Enemy(Entity):
         self.reward = reward
         
         # Apply type-specific modifiers
-        if enemy_type == EnemyType.VARIABLE_X:
-            self.speed *= 1.5
-            self.health *= 0.7
-            self.reward = int(self.reward * 1.2)
+        modifiers = self.TYPE_MODIFIERS.get(enemy_type, self.TYPE_MODIFIERS[EnemyType.STUDENT])
+        self.speed *= modifiers['speed_multiplier']
+        self.health *= modifiers['health_multiplier']
+        self.max_health = self.health
+        self.reward = int(self.reward * modifiers['reward_multiplier'])
     
     def update(self, dt: float) -> None:
         """

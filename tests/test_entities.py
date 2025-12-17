@@ -145,7 +145,7 @@ class TestEnemy:
             position=Vector2(0, 0),
             path=path,
             enemy_type=EnemyType.VARIABLE_X,
-            speed=50.0  # Will be multiplied by 1.5
+            speed=50.0  # Modified by type multiplier
         )
         
         normal.update(1.0)
@@ -304,6 +304,29 @@ class TestTower:
         
         assert tower.level == initial_level + 1
         assert tower.damage > initial_damage
+    
+    def test_tower_upgrade_linear_scaling(self):
+        """Test that tower upgrades scale linearly, not exponentially."""
+        tower = Tower(
+            position=Vector2(50, 50),
+            tower_type=TowerType.CALCULO,
+            level=1
+        )
+        
+        base_damage = tower.damage
+        
+        # Upgrade to level 2
+        tower.upgrade()
+        level2_damage = tower.damage
+        damage_increase_1 = level2_damage - base_damage
+        
+        # Upgrade to level 3
+        tower.upgrade()
+        level3_damage = tower.damage
+        damage_increase_2 = level3_damage - level2_damage
+        
+        # The increases should be equal (linear scaling)
+        assert pytest.approx(damage_increase_1, rel=0.01) == damage_increase_2
     
     def test_different_tower_types(self):
         """Test that different tower types have different stats."""

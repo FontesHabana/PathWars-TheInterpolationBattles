@@ -18,6 +18,12 @@ class EntityFactory:
     and ensure consistent initialization.
     """
     
+    # Wave generation constants
+    INITIAL_ENEMIES_PER_WAVE = 5
+    ENEMIES_PER_WAVE_INCREASE = 3
+    MAX_FAST_ENEMY_RATIO = 0.3
+    FAST_ENEMY_RATIO_INCREMENT = 0.05
+    
     @staticmethod
     def create_enemy(
         enemy_type: EnemyType,
@@ -139,8 +145,10 @@ class EntityFactory:
         enemies = []
         
         # Scale difficulty with wave number
-        base_count = 5 + (wave_number - 1) * 3
-        fast_enemy_ratio = min(0.3, wave_number * 0.05)
+        base_count = (EntityFactory.INITIAL_ENEMIES_PER_WAVE + 
+                     (wave_number - 1) * EntityFactory.ENEMIES_PER_WAVE_INCREASE)
+        fast_enemy_ratio = min(EntityFactory.MAX_FAST_ENEMY_RATIO, 
+                              wave_number * EntityFactory.FAST_ENEMY_RATIO_INCREMENT)
         
         fast_count = int(base_count * fast_enemy_ratio)
         student_count = base_count - fast_count

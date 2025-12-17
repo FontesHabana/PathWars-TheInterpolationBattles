@@ -36,6 +36,10 @@ class Tower(Entity):
         cost: Gold cost to build this tower.
     """
     
+    # Level scaling constants
+    DAMAGE_SCALE_FACTOR = 0.3  # +30% damage per level
+    RANGE_SCALE_FACTOR = 0.1   # +10% range per level
+    
     def __init__(
         self,
         position: Vector2,
@@ -64,6 +68,10 @@ class Tower(Entity):
         
         # Apply type-specific stats
         self._apply_type_stats()
+        
+        # Store base stats for upgrade calculations
+        self._base_damage = self.damage
+        self._base_range = self.range
         
         # Apply level scaling
         self._apply_level_scaling()
@@ -99,11 +107,12 @@ class Tower(Entity):
             self.cost = 120
     
     def _apply_level_scaling(self) -> None:
-        """Apply level-based stat increases."""
+        """Apply level-based stat increases to base stats."""
         if self.level > 1:
-            scale_factor = 1.0 + (self.level - 1) * 0.3
-            self.damage *= scale_factor
-            self.range *= (1.0 + (self.level - 1) * 0.1)
+            damage_scale = 1.0 + (self.level - 1) * self.DAMAGE_SCALE_FACTOR
+            range_scale = 1.0 + (self.level - 1) * self.RANGE_SCALE_FACTOR
+            self.damage = self._base_damage * damage_scale
+            self.range = self._base_range * range_scale
     
     def update(self, dt: float) -> None:
         """
