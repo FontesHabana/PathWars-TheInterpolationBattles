@@ -266,8 +266,10 @@ class TestBaseDamage:
         # Create enemy that has already reached the end
         path = [(0, 0), (10, 0)]
         enemy = Enemy(Vector2(0, 0), EnemyType.STUDENT, path)
-        # Move enemy to end of path
-        enemy.update(10.0)  # At speed 1.0, 10 seconds to move through index 0 to 1
+        # Move enemy to end of path (path has 2 points, index goes from 0 to 1)
+        # With speed 1.0 and update of 10.0 seconds, path_index becomes 10.0
+        # which exceeds path length (1), so enemy clamps to end
+        enemy.update(10.0)
 
         game_state.add_entity('enemies', enemy)
 

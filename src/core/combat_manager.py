@@ -113,9 +113,10 @@ class CombatManager:
         # Clear active attacks from previous frame
         self._active_attacks = []
 
-        # Get entities from game state (use internal collection to avoid copy)
-        towers = game_state._entities_collection.get('towers', [])
-        enemies = game_state._entities_collection.get('enemies', [])
+        # Get entities from game state
+        entities = game_state.entities_collection
+        towers = entities.get('towers', [])
+        enemies = entities.get('enemies', [])
 
         # Process tower attacks
         for tower in towers:
