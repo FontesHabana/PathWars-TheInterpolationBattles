@@ -38,8 +38,17 @@ class NetworkManager:
     _instance = None
     _lock = threading.Lock()
 
+    # Class constants
+    THREAD_JOIN_TIMEOUT = 2.0  # seconds
+
     def __new__(cls):
-        """Singleton pattern implementation (optional)."""
+        """
+        Singleton pattern implementation.
+
+        Ensures only one NetworkManager instance exists per process.
+        This prevents multiple network connections from being created
+        inadvertently.
+        """
         if cls._instance is None:
             with cls._lock:
                 if cls._instance is None:
@@ -279,7 +288,7 @@ class NetworkManager:
 
         # Wait for receive thread to finish
         if self.receive_thread and self.receive_thread.is_alive():
-            self.receive_thread.join(timeout=2.0)
+            self.receive_thread.join(timeout=self.THREAD_JOIN_TIMEOUT)
 
         # Close sockets
         if self.client_socket and self.client_socket != self.socket:

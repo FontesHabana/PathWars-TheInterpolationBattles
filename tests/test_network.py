@@ -213,14 +213,18 @@ class TestNetworkManagerMocked:
 
 class TestNetworkManagerIntegration:
     """Integration tests with real sockets in localhost."""
-    
+
     def setup_method(self):
         """Reset singleton and prepare for each test."""
         NetworkManager._instance = None
         self.host = None
         self.client = None
         self.received_messages = []
-        self.host_port = 15555  # Use non-standard port for testing
+        # Use dynamic port allocation to avoid conflicts
+        temp_sock = socket_module.socket(socket_module.AF_INET, socket_module.SOCK_STREAM)
+        temp_sock.bind(('127.0.0.1', 0))
+        self.host_port = temp_sock.getsockname()[1]
+        temp_sock.close()
     
     def teardown_method(self):
         """Clean up after each test."""
@@ -334,11 +338,13 @@ class TestNetworkManagerIntegration:
         
         # Wait for host to receive
         time.sleep(1.0)
-        
+
         assert len(received) > 0
         assert received[0].msg_type == MessageType.ROUTE_DATA
-        # JSON converts tuples to lists, so compare as lists
-        assert received[0].payload['points'] == [[0, 0], [5, 5], [10, 10]]
+        # Note: JSON serialization converts tuples to lists.
+        # In production, the protocol layer handles this conversion.
+        expected_points = [[0, 0], [5, 5], [10, 10]]
+        assert received[0].payload['points'] == expected_points
         
         host_thread.join(timeout=3.0)
     
