@@ -9,6 +9,7 @@ from enum import Enum, auto
 from typing import Callable, List, Optional, Tuple
 
 from core.wave_data import EnemySpawnConfig, WaveConfig, get_predefined_waves
+from entities.base import EntityState
 from entities.enemy import Enemy
 from entities.factory import EntityFactory
 
@@ -183,7 +184,8 @@ class WaveManager:
         # Reset spawn state
         self._current_spawn_config_index = 0
         self._current_spawn_count = 0
-        # Start timer at spawn_interval to spawn first enemy on first update
+        # Initialize timer at spawn_interval so the first enemy spawns immediately
+        # when update() is called. The update loop spawns when timer >= interval.
         self._spawn_timer = wave_config.spawn_interval
         self._spawned_enemies = []
         
@@ -257,9 +259,8 @@ class WaveManager:
         Returns:
             A new Enemy instance.
         """
-        # Get base stats for enemy type
-        from entities.enemy import Enemy as EnemyClass
-        base_stats = EnemyClass._ENEMY_STATS[config.enemy_type]
+        # Get base stats for enemy type from the Enemy class stats
+        base_stats = Enemy._ENEMY_STATS[config.enemy_type]
         
         # Apply modifiers
         modified_health = int(base_stats["health"] * config.health_modifier)
@@ -292,7 +293,6 @@ class WaveManager:
             return False
 
         # Check if all spawned enemies are dead
-        from entities.base import EntityState
         all_dead = all(
             enemy.state == EntityState.DEAD
             for enemy in self._spawned_enemies

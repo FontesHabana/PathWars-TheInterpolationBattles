@@ -531,7 +531,7 @@ class TestEnemyModifiers:
         # Base STUDENT speed is 1.0, so modified should be 1.1
         assert len(enemies) == 1
         if enemies[0].enemy_type == EnemyType.STUDENT:
-            assert pytest.approx(enemies[0].speed, abs=0.01) == 1.1
+            assert enemies[0].speed == pytest.approx(1.1, abs=0.01)
 
 
 if __name__ == "__main__":
