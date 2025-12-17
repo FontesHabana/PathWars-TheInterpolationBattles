@@ -7,6 +7,7 @@ Initializes Pygame, GameState, Network, and runs the main loop.
 import sys
 import pygame
 import logging
+from typing import List, Tuple
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -24,6 +25,9 @@ from entities.enemy import EnemyType, Enemy
 from ui.manager import UIManager
 from ui.curve_editor import CurveEditorUI
 from core.curve_state import CurveState
+
+# Constants for curve editor visualization
+CURVE_COLOR = (255, 100, 100)
 
 
 def main() -> None:
@@ -59,7 +63,7 @@ def main() -> None:
 
     curve_editor = CurveEditorUI(SCREEN_WIDTH, SCREEN_HEIGHT, curve_state)
 
-    def get_enemy_path() -> list:
+    def get_enemy_path() -> List[Tuple[float, float]]:
         """Get enemy path from curve editor (updated dynamically).
 
         Returns:
@@ -176,7 +180,7 @@ def main() -> None:
         if game_state.current_phase == GamePhase.PLANNING:
             path = curve_state.get_interpolated_path(100)
             if len(path) >= 2:
-                renderer.draw_curve(path, color=(255, 100, 100), width=2)
+                renderer.draw_curve(path, color=CURVE_COLOR, width=2)
             curve_editor.draw(screen)
             curve_editor.draw_control_points(screen)
 
