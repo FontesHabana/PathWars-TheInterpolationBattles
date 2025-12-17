@@ -6,11 +6,18 @@ dragging, and configuring control points.
 """
 
 import pygame
+from enum import Enum, auto
 from typing import Optional, List, Tuple
 
 from ui.components import Button, Panel, Label
 from core.curve_state import CurveState
 from graphics.assets import AssetManager
+
+
+class EditorMode(Enum):
+    """Enumeration of editor modes."""
+    NORMAL = auto()
+    ADD_POINT = auto()
 
 
 class CurveEditorUI:
@@ -31,6 +38,15 @@ class CurveEditorUI:
     CONTROL_POINT_COLOR = (255, 255, 0)  # Yellow
     CONTROL_POINT_SELECTED_COLOR = (255, 165, 0)  # Orange
     CONTROL_POINT_HOVER_COLOR = (255, 200, 100)  # Light orange
+
+    # Panel layout constants
+    PANEL_WIDTH = 200
+    PANEL_HEIGHT = 280
+    PANEL_X = 20
+    PANEL_Y = 120
+    BUTTON_WIDTH = 180
+    BUTTON_HEIGHT = 30
+    BUTTON_MARGIN = 10
 
     def __init__(
         self,
@@ -54,8 +70,8 @@ class CurveEditorUI:
         self._dragging_index: Optional[int] = None
         self._hovered_index: Optional[int] = None
 
-        # Mode: 'normal' or 'add_point'
-        self._mode: str = 'normal'
+        # Mode
+        self._mode: EditorMode = EditorMode.NORMAL
 
         # UI Panel
         self._panel: Panel = self._build_panel()
@@ -67,20 +83,29 @@ class CurveEditorUI:
         Returns:
             The configured Panel instance.
         """
-        panel_width = 200
-        panel_height = 280
-        panel_x = 20
-        panel_y = 120
+        panel_x = self.PANEL_X
+        panel_y = self.PANEL_Y
 
-        panel = Panel(pygame.Rect(panel_x, panel_y, panel_width, panel_height))
+        panel = Panel(pygame.Rect(
+            panel_x, panel_y, self.PANEL_WIDTH, self.PANEL_HEIGHT
+        ))
 
         # Title
-        panel.add(Label("Curve Editor", (panel_x + 10, panel_y + 10), font_size=22))
+        panel.add(Label(
+            "Curve Editor",
+            (panel_x + self.BUTTON_MARGIN, panel_y + self.BUTTON_MARGIN),
+            font_size=22
+        ))
 
         # Add Point button
         btn_add = Button(
             "Add Point",
-            pygame.Rect(panel_x + 10, panel_y + 50, 180, 30),
+            pygame.Rect(
+                panel_x + self.BUTTON_MARGIN,
+                panel_y + 50,
+                self.BUTTON_WIDTH,
+                self.BUTTON_HEIGHT
+            ),
             self._on_add_point_click,
             bg_color=(50, 100, 50),
             hover_color=(80, 150, 80),
@@ -90,7 +115,12 @@ class CurveEditorUI:
         # Remove Point button
         btn_remove = Button(
             "Remove Point",
-            pygame.Rect(panel_x + 10, panel_y + 90, 180, 30),
+            pygame.Rect(
+                panel_x + self.BUTTON_MARGIN,
+                panel_y + 90,
+                self.BUTTON_WIDTH,
+                self.BUTTON_HEIGHT
+            ),
             self._on_remove_point_click,
             bg_color=(100, 50, 50),
             hover_color=(150, 80, 80),
@@ -100,21 +130,36 @@ class CurveEditorUI:
         # Interpolation method buttons
         btn_linear = Button(
             "Linear",
-            pygame.Rect(panel_x + 10, panel_y + 140, 180, 30),
+            pygame.Rect(
+                panel_x + self.BUTTON_MARGIN,
+                panel_y + 140,
+                self.BUTTON_WIDTH,
+                self.BUTTON_HEIGHT
+            ),
             lambda: self._set_method('linear'),
         )
         panel.add(btn_linear)
 
         btn_lagrange = Button(
             "Lagrange",
-            pygame.Rect(panel_x + 10, panel_y + 180, 180, 30),
+            pygame.Rect(
+                panel_x + self.BUTTON_MARGIN,
+                panel_y + 180,
+                self.BUTTON_WIDTH,
+                self.BUTTON_HEIGHT
+            ),
             lambda: self._set_method('lagrange'),
         )
         panel.add(btn_lagrange)
 
         btn_spline = Button(
             "Spline",
-            pygame.Rect(panel_x + 10, panel_y + 220, 180, 30),
+            pygame.Rect(
+                panel_x + self.BUTTON_MARGIN,
+                panel_y + 220,
+                self.BUTTON_WIDTH,
+                self.BUTTON_HEIGHT
+            ),
             lambda: self._set_method('spline'),
         )
         panel.add(btn_spline)
@@ -123,10 +168,10 @@ class CurveEditorUI:
 
     def _on_add_point_click(self) -> None:
         """Handle Add Point button click - toggle add mode."""
-        if self._mode == 'add_point':
-            self._mode = 'normal'
+        if self._mode == EditorMode.ADD_POINT:
+            self._mode = EditorMode.NORMAL
         else:
-            self._mode = 'add_point'
+            self._mode = EditorMode.ADD_POINT
 
     def _on_remove_point_click(self) -> None:
         """Handle Remove Point button click - remove last point."""
@@ -194,10 +239,10 @@ class CurveEditorUI:
                 # Start dragging
                 self._dragging_index = point_index
                 return True
-            elif self._mode == 'add_point':
+            elif self._mode == EditorMode.ADD_POINT:
                 # Add a new point at click location
                 self.curve_state.add_point(mouse_x, mouse_y)
-                self._mode = 'normal'
+                self._mode = EditorMode.NORMAL
                 return True
 
         # Handle mouse button up
@@ -219,7 +264,7 @@ class CurveEditorUI:
         self._panel.draw(screen)
 
         # Draw mode indicator
-        if self._mode == 'add_point':
+        if self._mode == EditorMode.ADD_POINT:
             font = AssetManager.get_font(16)
             mode_text = "Click to add a point"
             text_surf = font.render(mode_text, True, (255, 255, 0))
@@ -272,11 +317,11 @@ class CurveEditorUI:
         return self._dragging_index is not None
 
     @property
-    def mode(self) -> str:
+    def mode(self) -> EditorMode:
         """
         Get the current editor mode.
 
         Returns:
-            The current mode string ('normal' or 'add_point').
+            The current EditorMode (NORMAL or ADD_POINT).
         """
         return self._mode
