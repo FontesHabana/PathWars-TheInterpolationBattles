@@ -14,7 +14,7 @@ class EntityFactory:
     """
     Factory class for creating game entities with predefined stats.
     """
-    
+
     # Enemy stats by type
     ENEMY_STATS = {
         EnemyType.BASIC: {
@@ -33,7 +33,7 @@ class EntityFactory:
             "reward": 20
         }
     }
-    
+
     # Tower stats by type
     TOWER_STATS = {
         TowerType.DEAN: {
@@ -57,7 +57,7 @@ class EntityFactory:
             "cooldown": 1.5
         }
     }
-    
+
     @staticmethod
     def create_enemy(
         enemy_type: EnemyType,
@@ -65,28 +65,28 @@ class EntityFactory:
     ) -> Enemy:
         """
         Create an enemy of the specified type.
-        
+
         Args:
             enemy_type: Type of enemy to create
             path: Path the enemy should follow (list of (x, y) coordinates)
-            
+
         Returns:
             Enemy instance with appropriate stats
-            
+
         Raises:
             ValueError: If enemy_type is not recognized
         """
         if enemy_type not in EntityFactory.ENEMY_STATS:
             raise ValueError(f"Unknown enemy type: {enemy_type}")
-        
+
         stats = EntityFactory.ENEMY_STATS[enemy_type]
-        
+
         # Start at the first point of the path
         if path and len(path) > 0:
             start_pos = Vector2(path[0][0], path[0][1])
         else:
             start_pos = Vector2(0, 0)
-        
+
         return Enemy(
             position=start_pos,
             enemy_type=enemy_type,
@@ -95,7 +95,7 @@ class EntityFactory:
             speed=stats["speed"],
             reward=stats["reward"]
         )
-    
+
     @staticmethod
     def create_tower(
         tower_type: TowerType,
@@ -103,23 +103,23 @@ class EntityFactory:
     ) -> Tower:
         """
         Create a tower of the specified type.
-        
+
         Args:
             tower_type: Type of tower to create
             position: Position to place the tower (x, y)
-            
+
         Returns:
             Tower instance with appropriate stats
-            
+
         Raises:
             ValueError: If tower_type is not recognized
         """
         if tower_type not in EntityFactory.TOWER_STATS:
             raise ValueError(f"Unknown tower type: {tower_type}")
-        
+
         stats = EntityFactory.TOWER_STATS[tower_type]
         pos = Vector2(position[0], position[1])
-        
+
         return Tower(
             position=pos,
             tower_type=tower_type,
