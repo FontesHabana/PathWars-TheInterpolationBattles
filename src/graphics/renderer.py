@@ -6,19 +6,43 @@ Handles isometric projection and drawing of the game state to the screen.
 
 import math
 import pygame
-from typing import Tuple, List
+from typing import List, Optional, Tuple, TYPE_CHECKING
 
 from core.grid import Grid
 from core.game_state import GameState, GamePhase
 from entities.base import EntityType
-from entities.tower import TowerType
-from entities.enemy import EnemyType
+from entities.tower import Tower, TowerType
+from entities.enemy import Enemy, EnemyType
 from graphics.assets import AssetManager
+
+if TYPE_CHECKING:
+    from core.combat_manager import CombatManager
+
 
 class Renderer:
     """
-    Handles all rendering operations.
+    Handles all rendering operations for the game.
+
+    Provides isometric projection and drawing of:
+    - Grid tiles
+    - Game entities (towers and enemies)
+    - HUD (money, lives, phase)
+    - Attack visualizations (lines from tower to target on attack)
+
+    Attributes:
+        screen: The pygame surface to render to.
+        grid: The game grid for coordinate conversion.
+        offset_x: X offset for centering the grid.
+        offset_y: Y offset (top margin).
+        tile_width: Width of isometric tiles.
+        tile_height: Height of isometric tiles.
     """
+
+    # Sprite vertical offsets for drawing
+    TOWER_OFFSET_Y = 20
+    ENEMY_OFFSET_Y = 15
+    ATTACK_FLASH_RADIUS = 6
+    ATTACK_FLASH_WIDTH = 2
 
     def __init__(self, screen: pygame.Surface, grid: Grid):
         self.screen = screen
@@ -118,7 +142,7 @@ class Renderer:
         
         # Draw a simple circle or polygon for now
         # Offset slightly up so it stands ON the tile
-        draw_pos = (pos[0], pos[1] - 20)
+        draw_pos = (pos[0], pos[1] - self.TOWER_OFFSET_Y)
         pygame.draw.circle(self.screen, color, draw_pos, 15)
         
         # Base
@@ -132,7 +156,7 @@ class Renderer:
         color = AssetManager.get_color(color_key)
         
         # Draw small circle
-        draw_pos = (pos[0], pos[1] - 15)
+        draw_pos = (pos[0], pos[1] - self.ENEMY_OFFSET_Y)
         pygame.draw.circle(self.screen, color, draw_pos, 8)
         
         # Health bar
@@ -212,12 +236,58 @@ class Renderer:
         phase_surf = font.render(f"Phase: {game_state.current_phase.name}", True, text_color)
         self.screen.blit(phase_surf, (20, 80))
 
-    def render(self, game_state: GameState):
-        """Main render call."""
+    def draw_attacks(self, active_attacks: List[Tuple[Tower, Enemy]]) -> None:
+        """
+        Draw attack visualizations (lines from tower to target).
+
+        Args:
+            active_attacks: List of (tower, enemy) tuples representing active attacks.
+        """
+        attack_color = (255, 255, 0)  # Yellow for attack lines
+        flash_color = (255, 200, 0)   # Orange for impact flash
+
+        for tower, enemy in active_attacks:
+            # Get screen positions for tower and enemy
+            tower_pos = self.cart_to_iso(tower.position.x, tower.position.y)
+            enemy_pos = self.cart_to_iso(enemy.position.x, enemy.position.y)
+
+            # Offset positions to match where sprites are drawn
+            tower_draw_pos = (tower_pos[0], tower_pos[1] - self.TOWER_OFFSET_Y)
+            enemy_draw_pos = (enemy_pos[0], enemy_pos[1] - self.ENEMY_OFFSET_Y)
+
+            # Draw attack line
+            pygame.draw.line(self.screen, attack_color, tower_draw_pos, enemy_draw_pos, 2)
+
+            # Draw a small flash/impact circle at enemy position
+            pygame.draw.circle(
+                self.screen,
+                flash_color,
+                enemy_draw_pos,
+                self.ATTACK_FLASH_RADIUS,
+                self.ATTACK_FLASH_WIDTH
+            )
+
+    def render(
+        self,
+        game_state: GameState,
+        combat_manager: Optional["CombatManager"] = None
+    ) -> None:
+        """
+        Main render call.
+
+        Args:
+            game_state: The current game state to render.
+            combat_manager: Optional combat manager for attack visualization.
+        """
         self.screen.fill(AssetManager.get_color("background"))
         
         self.draw_grid()
         self.draw_entities(game_state)
+
+        # Draw attack visualizations if combat manager is provided
+        if combat_manager is not None:
+            self.draw_attacks(combat_manager.active_attacks)
+
         self.draw_hud(game_state)
         
         pygame.display.flip()
