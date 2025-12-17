@@ -144,6 +144,39 @@ class Renderer:
         pygame.draw.rect(self.screen, (255, 0, 0), (*bar_pos, bar_width, bar_height))
         pygame.draw.rect(self.screen, (0, 255, 0), (*bar_pos, int(bar_width * hp_pct), bar_height))
 
+    def draw_curve(
+        self,
+        path: List[Tuple[float, float]],
+        color: Tuple[int, int, int] = (255, 100, 100),
+        width: int = 2,
+        use_isometric: bool = True,
+    ) -> None:
+        """
+        Draw the interpolated path as connected line segments.
+
+        Renders the path on the screen, optionally converting grid coordinates
+        to isometric screen coordinates.
+
+        Args:
+            path: List of (x, y) tuples representing the path points.
+            color: RGB tuple for the line color. Default is light red.
+            width: Line width in pixels. Default is 2.
+            use_isometric: If True, convert grid coords to isometric.
+                If False, use path coordinates directly as screen coords.
+        """
+        if len(path) < 2:
+            return
+
+        if use_isometric:
+            # Convert all points to isometric screen coordinates
+            screen_points = [self.cart_to_iso(p[0], p[1]) for p in path]
+        else:
+            # Use path coordinates directly as screen coordinates
+            screen_points = [(int(p[0]), int(p[1])) for p in path]
+
+        # Draw connected line segments
+        pygame.draw.lines(self.screen, color, False, screen_points, width)
+
     def draw_hud(self, game_state: GameState):
         """Draw the Heads Up Display."""
         font = AssetManager.get_font(24)
