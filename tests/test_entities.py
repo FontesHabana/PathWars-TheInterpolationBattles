@@ -49,6 +49,13 @@ class TestVector2:
         assert result.x == 4.0
         assert result.y == 6.0
 
+    def test_vector2_scalar_right_multiplication(self):
+        """Test scalar multiplication from the left (scalar * vector)."""
+        v = Vector2(2.0, 3.0)
+        result = 2.0 * v
+        assert result.x == 4.0
+        assert result.y == 6.0
+
     def test_vector2_distance(self):
         """Test distance calculation (3-4-5 triangle)."""
         v1 = Vector2(0.0, 0.0)

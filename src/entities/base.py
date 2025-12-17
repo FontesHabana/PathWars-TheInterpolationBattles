@@ -49,6 +49,10 @@ class Vector2:
         """Multiply vector by a scalar."""
         return Vector2(self.x * scalar, self.y * scalar)
 
+    def __rmul__(self, scalar: float) -> "Vector2":
+        """Support scalar * vector multiplication."""
+        return self.__mul__(scalar)
+
     def distance_to(self, other: "Vector2") -> float:
         """Calculate Euclidean distance to another vector."""
         return ((self.x - other.x) ** 2 + (self.y - other.y) ** 2) ** 0.5
