@@ -14,8 +14,7 @@ from typing import Callable, Dict, List, Optional, Tuple
 
 from .protocol import Message, MessageType, Serializer
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
+# Get logger for this module (let application configure logging)
 logger = logging.getLogger(__name__)
 
 
@@ -155,9 +154,15 @@ class NetworkManager:
             except Exception as e:
                 logger.error(f"Error in connection callback: {e}")
 
-    def start_host(self, port: int, host: str = "0.0.0.0") -> bool:
+    def start_host(self, port: int, host: str = "0.0.0.0") -> bool:  # noqa: S104
         """
         Start hosting a game server on the specified port.
+
+        Note:
+            The default host '0.0.0.0' binds to all network interfaces, which is
+            intentional for a multiplayer game server that needs to accept
+            connections from players on the local network or internet.
+            To restrict to localhost only, pass host='127.0.0.1'.
 
         Args:
             port: The port to listen on.
@@ -201,10 +206,7 @@ class NetworkManager:
             try:
                 if self._socket is None:
                     break
-                result = self._socket.accept()
-                if not result or len(result) != 2:
-                    continue
-                client_socket, address = result
+                client_socket, address = self._socket.accept()
                 self._client_socket = client_socket
                 self._client_address = address
                 self._is_connected = True
@@ -220,6 +222,10 @@ class NetworkManager:
                 self._receive_thread.start()
 
                 # Only accept one client for now
+                break
+
+            except ValueError:
+                # Can happen with mocked sockets in tests
                 break
 
             except socket.timeout:

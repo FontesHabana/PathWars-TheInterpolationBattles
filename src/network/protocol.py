@@ -9,9 +9,9 @@ the underlying serialization logic.
 import json
 import struct
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field, asdict
+from dataclasses import dataclass, field
 from enum import Enum, auto
-from typing import Any, Dict, Optional, Type, TypeVar
+from typing import Any, Dict, Optional
 
 
 class MessageType(Enum):
@@ -79,9 +79,6 @@ class Message:
             sender_id=data.get("sender_id"),
             timestamp=data.get("timestamp"),
         )
-
-
-T = TypeVar("T", bound=Message)
 
 
 class BaseSerializer(ABC):
