@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 from core.game_state import GameState, GamePhase
 from core.grid import Grid
 from core.input_handler import InputHandler
+from core.wave_manager import WaveManager
 from graphics.renderer import Renderer
 from graphics.assets import AssetManager
 from entities.factory import EntityFactory
@@ -38,6 +39,32 @@ def main():
     renderer = Renderer(screen, grid)
     ui_manager = UIManager(SCREEN_WIDTH, SCREEN_HEIGHT, game_state)
     input_handler = InputHandler(game_state, grid, renderer)
+    
+    # Initialize Wave Manager
+    wave_manager = WaveManager()
+    current_wave_number = 0  # Track which wave we're on (0 = not started)
+    
+    # Default enemy path (can be overridden by game logic)
+    default_path = [
+        (0.0, 360.0),      # Start from left center
+        (320.0, 360.0),    # First turn
+        (320.0, 180.0),    # Up
+        (640.0, 180.0),    # Right
+        (640.0, 540.0),    # Down
+        (960.0, 540.0),    # Right
+        (960.0, 360.0),    # Up
+        (1280.0, 360.0),   # End at right center
+    ]
+    
+    # Wave event callbacks
+    def on_wave_start(wave_num: int) -> None:
+        logger.info(f"Wave {wave_num} started!")
+    
+    def on_wave_complete(wave_num: int) -> None:
+        logger.info(f"Wave {wave_num} complete!")
+    
+    wave_manager.subscribe_wave_start(on_wave_start)
+    wave_manager.subscribe_wave_complete(on_wave_complete)
     
     # Link UI Manager to Input Handler for tower selection sync
     input_handler.ui_manager = ui_manager
@@ -72,6 +99,30 @@ def main():
         # Update Towers (Always update cooldowns)
         for tower in entities.get('towers', []):
             tower.update(dt)
+        
+        # Update Wave Manager during BATTLE phase
+        if game_state.current_phase == GamePhase.BATTLE:
+            # Start wave if not active
+            if not wave_manager.is_active:
+                current_wave_number += 1
+                if current_wave_number <= wave_manager.total_waves:
+                    wave_manager.start_wave(current_wave_number, default_path)
+            
+            # Update wave manager and spawn enemies
+            new_enemies = wave_manager.update(dt)
+            for enemy in new_enemies:
+                game_state.add_entity('enemies', enemy)
+            
+            # Update all enemies
+            for enemy in game_state.entities_collection.get('enemies', []):
+                enemy.update(dt)
+            
+            # Check for wave completion
+            if wave_manager.is_wave_complete():
+                # Check if there are more waves
+                if not wave_manager.has_more_waves():
+                    # All waves complete - transition to RESULT phase
+                    game_state.change_phase(GamePhase.RESULT)
             
         # Draw
         renderer.render(game_state)
