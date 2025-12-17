@@ -1,6 +1,6 @@
 """UI module for PathWars."""
 from ui.manager import UIManager
 from ui.components import Button, Panel, Label
-from ui.curve_editor import CurveEditorUI
+from ui.curve_editor import CurveEditorUI, EditorMode
 
-__all__ = ["UIManager", "Button", "Panel", "Label", "CurveEditorUI"]
+__all__ = ["UIManager", "Button", "Panel", "Label", "CurveEditorUI", "EditorMode"]
