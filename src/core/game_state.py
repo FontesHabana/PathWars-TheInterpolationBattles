@@ -68,6 +68,19 @@ class GameState:
         """
         cls._instance = None
     
+    def reset(self) -> None:
+        """
+        Reset the game state to initial values for a new game.
+        """
+        self._money = 1000
+        self._lives = 10
+        self._current_phase = GamePhase.PLANNING
+        self._entities_collection = {
+            'towers': [],
+            'enemies': [],
+        }
+
+    
     @property
     def money(self) -> int:
         """Return current money amount."""

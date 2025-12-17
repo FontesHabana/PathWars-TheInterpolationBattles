@@ -29,6 +29,11 @@ class Grid:
         self._cell_size = cell_size
         self._occupied: Set[Tuple[int, int]] = set()
     
+    def clear(self) -> None:
+        """Clear all occupied cells."""
+        self._occupied.clear()
+
+    
     @property
     def width(self) -> int:
         """Return grid width in cells."""

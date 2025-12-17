@@ -50,15 +50,27 @@ class CurveState:
         """
         return self._interpolation_method
 
-    def add_point(self, x: float, y: float) -> None:
+    def add_point(self, x: float, y: float) -> bool:
         """
         Add a new control point at the specified coordinates.
+        Ensures points are always sorted by X coordinate.
+        Prevents adding points with duplicate X values.
 
         Args:
             x: The x coordinate of the new point.
             y: The y coordinate of the new point.
+        
+        Returns:
+            True if point was added, False if X is duplicate.
         """
+        # Prevent exact duplicate X values to maintain function property
+        for px, _ in self._control_points:
+            if abs(px - x) < 0.01:
+                return False
+                
         self._control_points.append((x, y))
+        self._control_points.sort(key=lambda p: p[0])
+        return True
 
     def remove_point(self, index: int) -> bool:
         """
@@ -78,6 +90,7 @@ class CurveState:
     def move_point(self, index: int, x: float, y: float) -> bool:
         """
         Move the control point at the specified index to new coordinates.
+        Resorts points after move to maintain X-order.
 
         Args:
             index: The index of the point to move.
@@ -85,10 +98,16 @@ class CurveState:
             y: The new y coordinate.
 
         Returns:
-            True if the point was moved, False if the index was invalid.
+            True if the point was moved, False if the index was invalid or X duplicate.
         """
         if 0 <= index < len(self._control_points):
+            # Check for duplicate X excluding the current point being moved
+            for i, (px, _) in enumerate(self._control_points):
+                if i != index and abs(px - x) < 0.01:
+                    return False
+            
             self._control_points[index] = (x, y)
+            self._control_points.sort(key=lambda p: p[0])
             return True
         return False
 

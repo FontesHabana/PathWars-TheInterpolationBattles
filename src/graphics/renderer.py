@@ -289,5 +289,5 @@ class Renderer:
             self.draw_attacks(combat_manager.active_attacks)
 
         self.draw_hud(game_state)
-        
-        pygame.display.flip()
+        # NOTE: pygame.display.flip() is called by main.py after all UI is drawn
+

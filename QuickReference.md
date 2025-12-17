@@ -64,21 +64,19 @@ _ENEMY_STATS = {
 
 ---
 
-## 🌊 Wave Definitions
-**File:** `src/core/wave_data.py`
-- `get_predefined_waves()` returns the 5 wave configurations
-- Each wave has `enemy_configs`, `spawn_interval`
-
 ---
 
-## 🎨 Curve Editor
-**Files:**
-- `src/core/curve_state.py` - Data model for control points
-- `src/ui/curve_editor.py` - Visual UI for editing
+## 🎨 Assets Usage
 
-**Usage:**
-```python
-curve_state.add_point(x, y)
-curve_state.set_method('spline')  # 'linear', 'lagrange', 'spline'
-path = curve_state.get_interpolated_path(100)
-```
+### Adding Sprites
+1. Place images in `assets/images/`.
+2. Register them in `src/graphics/assets.py` inside `AssetManager.load_assets()`.
+3. Use `AssetManager.get_image("name")` to retrieve them.
+
+### Adding Fonts
+1. Place `.ttf` files in `assets/fonts/`.
+2. Use `AssetManager.get_font(size)` in your UI or Renderer code.
+
+### Colors
+**File:** `src/graphics/assets.py`
+Modify `_COLORS` dictionary to change theme colors (background, grid, text).

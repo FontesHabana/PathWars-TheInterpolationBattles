@@ -52,6 +52,7 @@ class CurveEditorUI:
         self,
         screen_width: int,
         screen_height: int,
+        renderer: "Renderer",
         curve_state: Optional[CurveState] = None,
     ) -> None:
         """
@@ -60,10 +61,12 @@ class CurveEditorUI:
         Args:
             screen_width: Width of the screen in pixels.
             screen_height: Height of the screen in pixels.
+            renderer: The Renderer instance for coordinate conversion.
             curve_state: Optional CurveState instance. Creates a new one if None.
         """
         self.screen_width = screen_width
         self.screen_height = screen_height
+        self.renderer = renderer
         self.curve_state = curve_state if curve_state else CurveState()
 
         # Dragging state
@@ -196,11 +199,19 @@ class CurveEditorUI:
             Index of the control point if found, None otherwise.
         """
         for i, point in enumerate(self.curve_state.control_points):
-            px, py = point
+            # Convert grid point to screen for collision check
+            screen_pos = self.renderer.cart_to_iso(point[0], point[1])
+            px, py = screen_pos
             dist_sq = (x - px) ** 2 + (y - py) ** 2
             if dist_sq <= self.CONTROL_POINT_RADIUS ** 2:
                 return i
         return None
+
+    def _clamp_to_grid(self, gx: float, gy: float) -> Tuple[float, float]:
+        """Clamp grid coordinates to valid grid range."""
+        max_x = self.renderer.grid.width - 1
+        max_y = self.renderer.grid.height - 1
+        return max(0, min(gx, max_x)), max(0, min(gy, max_y))
 
     def handle_event(self, event: pygame.event.Event) -> bool:
         """
@@ -225,7 +236,9 @@ class CurveEditorUI:
 
             # Handle dragging
             if self._dragging_index is not None:
-                self.curve_state.move_point(self._dragging_index, mouse_x, mouse_y)
+                gx, gy = self.renderer.iso_to_cart(mouse_x, mouse_y)
+                gx, gy = self._clamp_to_grid(gx, gy)
+                self.curve_state.move_point(self._dragging_index, gx, gy)
                 return True
 
         # Handle mouse button down
@@ -241,8 +254,10 @@ class CurveEditorUI:
                 return True
             elif self._mode == EditorMode.ADD_POINT:
                 # Add a new point at click location
-                self.curve_state.add_point(mouse_x, mouse_y)
-                self._mode = EditorMode.NORMAL
+                gx, gy = self.renderer.iso_to_cart(mouse_x, mouse_y)
+                gx, gy = self._clamp_to_grid(gx, gy)
+                if self.curve_state.add_point(gx, gy):
+                    self._mode = EditorMode.NORMAL
                 return True
 
         # Handle mouse button up
@@ -264,14 +279,13 @@ class CurveEditorUI:
         self._panel.draw(screen)
 
         # Draw mode indicator
+        font = AssetManager.get_font(16)
         if self._mode == EditorMode.ADD_POINT:
-            font = AssetManager.get_font(16)
-            mode_text = "Click to add a point"
+            mode_text = "Click on GRID to add a point"
             text_surf = font.render(mode_text, True, (255, 255, 0))
             screen.blit(text_surf, (20, self.screen_height - 60))
 
         # Draw method indicator
-        font = AssetManager.get_font(16)
         method_text = f"Method: {self.curve_state.interpolation_method}"
         text_surf = font.render(method_text, True, (200, 200, 200))
         screen.blit(text_surf, (20, self.screen_height - 80))
@@ -284,7 +298,9 @@ class CurveEditorUI:
             screen: The pygame surface to draw on.
         """
         for i, point in enumerate(self.curve_state.control_points):
-            px, py = int(point[0]), int(point[1])
+            # Convert grid coordinates to screen for rendering
+            screen_pos = self.renderer.cart_to_iso(point[0], point[1])
+            px, py = int(screen_pos[0]), int(screen_pos[1])
 
             # Choose color based on state
             if i == self._dragging_index:
@@ -325,3 +341,5 @@ class CurveEditorUI:
             The current EditorMode (NORMAL or ADD_POINT).
         """
         return self._mode
+
+
