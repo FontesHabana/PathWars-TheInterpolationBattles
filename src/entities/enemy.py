@@ -196,7 +196,7 @@ class Enemy(Entity):
         Get the current speed multiplier from slow effects.
 
         Returns:
-            Speed multiplier from 0.0 to 1.0 (1.0 = no slow, 0.5 = 50% slow).
+            Speed multiplier from 0.0 to 1.0 (1.0 = no slow, 0.5 = 50% of normal speed).
         """
         # Import here to avoid circular import
         from core.effects import EffectType
@@ -204,7 +204,7 @@ class Enemy(Entity):
         multiplier = 1.0
         for effect in self._active_effects:
             if effect.effect_type == EffectType.SLOW:
-                # value represents the slow percentage (0.5 = 50% slow)
+                # value represents the slow percentage (0.5 = 50% slower, resulting in 50% speed)
                 multiplier = min(multiplier, 1.0 - effect.value)
         return max(0.0, multiplier)
 
