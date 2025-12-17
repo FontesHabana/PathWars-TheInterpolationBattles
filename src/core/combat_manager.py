@@ -149,6 +149,8 @@ class CombatManager:
 
             # Check if enemy reached end of path
             if enemy.has_reached_end and enemy.state != EntityState.DEAD:
+                # Mark as dead so wave completion logic works
+                enemy.state = EntityState.DEAD
                 self._notify_base_damaged(enemy)
                 enemies_to_remove.append(enemy)
                 continue

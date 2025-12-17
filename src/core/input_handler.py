@@ -7,11 +7,19 @@ Processes raw Pygame events and translates them into GameState actions.
 import pygame
 from typing import Optional, Tuple
 
-from core.game_state import GameState, GamePhase
+from core.game_state import GameState, GamePhase, InsufficientFundsError
 from core.grid import Grid
 from graphics.renderer import Renderer
 from entities.tower import TowerType
 from entities.factory import EntityFactory
+
+# Tower costs by type
+TOWER_COSTS = {
+    TowerType.DEAN: 50,
+    TowerType.CALCULUS: 75,
+    TowerType.PHYSICS: 100,
+    TowerType.STATISTICS: 60,
+}
 
 class InputHandler:
     """
@@ -61,14 +69,21 @@ class InputHandler:
         if self.grid.is_occupied(x, y):
             print(f"Cell {x},{y} is occupied")
             return
-            
-        # TODO: Check costs properly via GameState
-        # For now, just spawn it
+        
+        # Check tower cost
+        cost = TOWER_COSTS.get(self.selected_tower_type, 50)
+        
         try:
+            # Deduct money first
+            self.game_state.deduct_money(cost)
+            
+            # Create and place tower
             tower = EntityFactory.create_tower(self.selected_tower_type, (x, y))
             self.game_state.add_entity('towers', tower)
             self.grid.set_occupied(x, y, True)
-            print(f"Placed tower at {x},{y}")
+            print(f"Placed {self.selected_tower_type.name} tower at {x},{y} for ${cost}")
+        except InsufficientFundsError:
+            print(f"Not enough money! Need ${cost}, have ${self.game_state.money}")
         except Exception as e:
             print(f"Failed to place tower: {e}")
 

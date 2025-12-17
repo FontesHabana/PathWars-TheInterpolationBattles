@@ -52,7 +52,7 @@ class GameState:
         if self._initialized:
             return
         
-        self._money: int = 100
+        self._money: int = 1000
         self._lives: int = 10
         self._current_phase: GamePhase = GamePhase.PLANNING
         self._entities_collection: Dict[str, List[Any]] = {

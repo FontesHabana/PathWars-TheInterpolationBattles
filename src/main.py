@@ -46,17 +46,19 @@ def main() -> None:
     wave_manager = WaveManager()
     current_wave_number = 0  # Track which wave we're on (0 = not started)
     
-    # Default enemy path (can be overridden by game logic)
+    # Default enemy path in GRID COORDINATES (0-19 range, matching grid size)
+    # Enemies will be rendered in isometric projection by Renderer.cart_to_iso()
     default_path = [
-        (0.0, 360.0),      # Start from left center
-        (320.0, 360.0),    # First turn
-        (320.0, 180.0),    # Up
-        (640.0, 180.0),    # Right
-        (640.0, 540.0),    # Down
-        (960.0, 540.0),    # Right
-        (960.0, 360.0),    # Up
-        (1280.0, 360.0),   # End at right center
+        (0.0, 10.0),     # Start from left edge, middle row
+        (5.0, 10.0),     # Move right
+        (5.0, 5.0),      # Turn up
+        (10.0, 5.0),     # Move right
+        (10.0, 15.0),    # Turn down
+        (15.0, 15.0),    # Move right
+        (15.0, 10.0),    # Turn up
+        (19.0, 10.0),    # End at right edge
     ]
+
     
     # Wave event callbacks
     def on_wave_start(wave_num: int) -> None:
