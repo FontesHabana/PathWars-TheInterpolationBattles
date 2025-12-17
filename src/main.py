@@ -19,6 +19,7 @@ from graphics.renderer import Renderer
 from graphics.assets import AssetManager
 from entities.factory import EntityFactory
 from entities.enemy import EnemyType
+from ui.manager import UIManager
 
 def main():
     logger.info("Starting PathWars...")
@@ -35,40 +36,47 @@ def main():
     game_state = GameState() # Singleton
     grid = Grid(width=20, height=20, cell_size=32)
     renderer = Renderer(screen, grid)
+    ui_manager = UIManager(SCREEN_WIDTH, SCREEN_HEIGHT, game_state)
     input_handler = InputHandler(game_state, grid, renderer)
     
-    # Debug: Spawn a dummy text wave
-    path = [(0,0), (5,5), (10,5), (15,10), (19,19)]
-    enemies = EntityFactory.create_enemy_wave(EnemyType.STUDENT, path, count=0) # Start empty
+    # Link UI Manager to Input Handler for tower selection sync
+    input_handler.ui_manager = ui_manager
 
     # 3. Main Loop
     running = True
     while running:
         dt = clock.tick(60) / 1000.0 # Delta time in seconds
         
-        # Input
-        if not input_handler.handle_input():
-            running = False
+        # Input - UI gets priority
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+                break
+                
+            # UI handles event first
+            if ui_manager.handle_event(event):
+                continue  # Event consumed by UI
+                
+            # Game world handles event
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                input_handler._handle_left_click(event.pos)
+            elif event.type == pygame.KEYDOWN:
+                input_handler._handle_keydown(event.key)
+            
+        # Sync tower selection from UI to input handler
+        input_handler.selected_tower_type = ui_manager.selected_tower_type
             
         # Update
-        # Update entities logic
         entities = game_state.entities_collection
         
-        # Only update enemies during BATTLE phase or for testing
-        if game_state.current_phase == GamePhase.BATTLE:
-            # Simple wave spawner for debug
-            # In real game, this is handled by a WaveManager
-            pass 
-
         # Update Towers (Always update cooldowns)
         for tower in entities.get('towers', []):
             tower.update(dt)
-            # Find targets and attack
-            # target = tower.find_target(entities.get('enemies', []))
-            # if target: tower.attack(target)
             
         # Draw
         renderer.render(game_state)
+        ui_manager.draw(screen)
+        pygame.display.flip()
         
     # Cleanup
     pygame.quit()
