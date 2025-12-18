@@ -120,6 +120,13 @@ def main() -> None:
     # Link UI Manager to Input Handler
     input_handler.ui_manager = ui_manager
 
+    # Connect tower selection callback
+    def on_tower_selected(tower):
+        """Callback when a tower is selected."""
+        ui_manager.select_tower(tower)
+    
+    input_handler.on_tower_selected = on_tower_selected
+
     # Initialize Combat Manager
     combat_manager = CombatManager()
     game_over = False
