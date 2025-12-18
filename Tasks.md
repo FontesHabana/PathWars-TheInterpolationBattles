@@ -58,10 +58,10 @@ La siguiente hoja de ruta prioriza la **Arquitectura Multijugador** y la **Calid
 - [x] Queue de comandos con timestamp para sincronización.
 
 ### 14.4. Separación de GameState (Local vs Remoto)
-- [ ] `GameState` (Remoto): HP, dinero, torres, puntos de control, fase actual.
-- [ ] `LocalGameState`: Posiciones de sprites, animaciones, efectos visuales.
-- [ ] Sincronización periódica del estado remoto.
-- [ ] Interpolación local para suavizado de movimientos.
+- [x] `GameState` (Remoto): HP, dinero, torres, puntos de control, fase actual.
+- [x] `LocalGameState`: Posiciones de sprites, animaciones, efectos visuales.
+- [x] Sincronización periódica del estado remoto.
+- [x] Interpolación local para suavizado de movimientos.
 
 ### 14.5. Unit Tests
 - [x] Tests de serialización/deserialización de comandos.

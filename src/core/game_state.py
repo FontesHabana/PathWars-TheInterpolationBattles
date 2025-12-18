@@ -210,3 +210,64 @@ class GameState:
             return True
         except ValueError:
             return False
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """
+        Serialize the game state to a dictionary.
+        
+        Includes money, lives, phase, and an entities summary (counts and positions).
+        This is used for network synchronization with clients.
+        
+        Returns:
+            Dictionary representation of the game state.
+        """
+        entities_summary: Dict[str, List[Dict[str, Any]]] = {}
+        
+        for entity_type, entities in self._entities_collection.items():
+            entities_summary[entity_type] = []
+            for entity in entities:
+                entity_data: Dict[str, Any] = {}
+                # Include entity id if available
+                if hasattr(entity, 'id'):
+                    entity_data['id'] = entity.id
+                # Include position if available
+                if hasattr(entity, 'position'):
+                    pos = entity.position
+                    if hasattr(pos, 'x') and hasattr(pos, 'y'):
+                        entity_data['position'] = {'x': pos.x, 'y': pos.y}
+                    elif hasattr(pos, 'as_tuple'):
+                        x, y = pos.as_tuple()
+                        entity_data['position'] = {'x': x, 'y': y}
+                entities_summary[entity_type].append(entity_data)
+        
+        return {
+            'money': self._money,
+            'lives': self._lives,
+            'phase': self._current_phase.name,
+            'entities': entities_summary,
+        }
+    
+    def from_dict(self, data: Dict[str, Any]) -> None:
+        """
+        Update the game state from a dictionary (server snapshot).
+        
+        This method applies authoritative state from the server,
+        updating money, lives, and phase. Note that entities are
+        handled separately through entity-specific synchronization.
+        
+        Args:
+            data: Dictionary containing game state data.
+        """
+        if 'money' in data:
+            self._money = data['money']
+        
+        if 'lives' in data:
+            self._lives = data['lives']
+        
+        if 'phase' in data:
+            phase_name = data['phase']
+            # Convert string phase name to GamePhase enum
+            try:
+                self._current_phase = GamePhase[phase_name]
+            except KeyError:
+                pass  # Keep current phase if invalid name provided
