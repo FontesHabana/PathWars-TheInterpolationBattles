@@ -55,9 +55,10 @@ class OffensePlanningState(GamePhaseState):
     
     def exit(self) -> None:
         """Called when exiting this phase."""
-        # Lock current control points when exiting
-        self._locked_points.extend(self._control_points)
-        self._control_points.clear()
+        # Lock current control points when exiting (if not already locked)
+        if self._control_points:
+            self._locked_points.extend(self._control_points)
+            self._control_points.clear()
         self._editing_enabled = False
     
     def update(self, dt: float) -> None:

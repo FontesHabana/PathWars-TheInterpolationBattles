@@ -15,7 +15,7 @@ class GamePhaseState(ABC):
     
     def __init__(self, phase_manager: 'PhaseManager') -> None:
         self._phase_manager = phase_manager
-        self._time_limit: Optional[float] = None  # None = sin límite
+        self._time_limit: Optional[float] = None  # None = no limit
         self._elapsed_time: float = 0.0
     
     @property
