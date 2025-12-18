@@ -87,6 +87,11 @@ class MainMenu:
         """Check if the main menu is visible."""
         return self._visible
     
+    @property
+    def selected_option(self) -> Optional[str]:
+        """Get the currently selected option ('host', 'join', or None)."""
+        return self._selected_option
+    
     def show(self) -> None:
         """Show the main menu."""
         self._visible = True

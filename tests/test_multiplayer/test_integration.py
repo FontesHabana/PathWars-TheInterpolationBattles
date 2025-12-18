@@ -37,7 +37,8 @@ class TestMultiplayerIntegration:
         assert host_session.role == PlayerRole.HOST
         assert host_session.phase == DuelPhase.WAITING_OPPONENT
         
-        # Create client session (bypass singleton)
+        # Create client session (bypass singleton for testing - we need separate instances)
+        # This is intentional to simulate two separate processes in the same test
         NetworkManager._instance = None
         client_session = DuelSession()
         
@@ -73,6 +74,7 @@ class TestMultiplayerIntegration:
         
         host_session.host_game(port)
         
+        # Bypass singleton for testing - we need separate instances
         NetworkManager._instance = None
         client_session = DuelSession()
         
@@ -107,6 +109,7 @@ class TestMultiplayerIntegration:
         
         host_session.host_game(port)
         
+        # Bypass singleton for testing - we need separate instances
         NetworkManager._instance = None
         client_session = DuelSession()
         
@@ -142,6 +145,7 @@ class TestMultiplayerIntegration:
         
         host_session.host_game(port)
         
+        # Bypass singleton for testing - we need separate instances
         NetworkManager._instance = None
         client_session = DuelSession()
         

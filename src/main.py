@@ -155,7 +155,7 @@ def main() -> None:
                     logger.info("Starting single player mode")
                 elif action == 'confirm':
                     # Handle host/join confirmation
-                    if main_menu._selected_option == 'host':
+                    if main_menu.selected_option == 'host':
                         # Host a game
                         ip, port = main_menu.get_connection_info()
                         duel_session = DuelSession()
@@ -165,7 +165,7 @@ def main() -> None:
                             main_menu.set_status("Waiting for opponent...", is_error=False)
                         else:
                             main_menu.set_status("Failed to host game", is_error=True)
-                    elif main_menu._selected_option == 'join':
+                    elif main_menu.selected_option == 'join':
                         # Join a game
                         ip, port = main_menu.get_connection_info()
                         duel_session = DuelSession()
