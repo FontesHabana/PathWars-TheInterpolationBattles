@@ -7,7 +7,7 @@ Initializes Pygame, GameState, Network, and runs the main loop.
 import sys
 import pygame
 import logging
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -27,7 +27,10 @@ from ui.manager import UIManager
 from ui.curve_editor import CurveEditorUI
 from ui.wave_banner import WaveBanner
 from ui.result_screen import ResultScreen
+from ui.main_menu import MainMenu
 from core.curve_state import CurveState
+from multiplayer.duel_session import DuelSession, DuelPhase
+from multiplayer.dual_view import DualView
 
 # Constants
 CURVE_COLOR = (255, 100, 100)
@@ -43,6 +46,14 @@ def main() -> None:
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     pygame.display.set_caption("PathWars: The Interpolation Duel")
     clock = pygame.time.Clock()
+
+    # 2. Initialize Main Menu
+    main_menu = MainMenu(SCREEN_WIDTH, SCREEN_HEIGHT)
+    
+    # Game mode state
+    game_mode: Optional[str] = None  # 'single', 'multiplayer', None
+    duel_session: Optional[DuelSession] = None
+    dual_view: Optional[DualView] = None
 
     # 2. Initialize Core Systems
     game_state = GameState()
@@ -125,6 +136,92 @@ def main() -> None:
     running = True
     while running:
         dt = clock.tick(60) / 1000.0
+        
+        # Handle main menu first (if visible)
+        if main_menu.visible:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+                    break
+                
+                action = main_menu.handle_event(event)
+                if action == 'quit':
+                    running = False
+                    break
+                elif action == 'single':
+                    # Start single player mode
+                    game_mode = 'single'
+                    main_menu.hide()
+                    logger.info("Starting single player mode")
+                elif action == 'confirm':
+                    # Handle host/join confirmation
+                    if main_menu._selected_option == 'host':
+                        # Host a game
+                        ip, port = main_menu.get_connection_info()
+                        duel_session = DuelSession()
+                        if duel_session.host_game(port):
+                            game_mode = 'multiplayer'
+                            dual_view = DualView(SCREEN_WIDTH, SCREEN_HEIGHT)
+                            main_menu.set_status("Waiting for opponent...", is_error=False)
+                        else:
+                            main_menu.set_status("Failed to host game", is_error=True)
+                    elif main_menu._selected_option == 'join':
+                        # Join a game
+                        ip, port = main_menu.get_connection_info()
+                        duel_session = DuelSession()
+                        if duel_session.join_game(ip, port):
+                            game_mode = 'multiplayer'
+                            dual_view = DualView(SCREEN_WIDTH, SCREEN_HEIGHT)
+                            main_menu.hide()
+                            logger.info("Joined game successfully")
+                        else:
+                            main_menu.set_status("Failed to join game", is_error=True)
+            
+            # Draw main menu
+            screen.fill((0, 0, 0))
+            main_menu.draw(screen)
+            pygame.display.flip()
+            continue
+        
+        # Check if in multiplayer mode and waiting for connection
+        if game_mode == 'multiplayer' and duel_session:
+            if duel_session.phase == DuelPhase.WAITING_OPPONENT:
+                # Draw waiting screen
+                screen.fill((20, 20, 40))
+                font = pygame.font.Font(None, 48)
+                text = font.render("Waiting for opponent to join...", True, (255, 255, 255))
+                text_rect = text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
+                screen.blit(text, text_rect)
+                
+                hint = pygame.font.Font(None, 32).render("Press ESC to cancel", True, (150, 150, 150))
+                hint_rect = hint.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 50))
+                screen.blit(hint, hint_rect)
+                
+                pygame.display.flip()
+                
+                # Check for ESC
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        running = False
+                        break
+                    if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                        duel_session.disconnect()
+                        main_menu.show()
+                        game_mode = None
+                        duel_session = None
+                continue
+            elif duel_session.phase == DuelPhase.SYNCING:
+                # Show syncing message
+                screen.fill((20, 20, 40))
+                font = pygame.font.Font(None, 48)
+                text = font.render("Synchronizing...", True, (255, 255, 255))
+                text_rect = text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
+                screen.blit(text, text_rect)
+                pygame.display.flip()
+                continue
+            elif duel_session.phase == DuelPhase.PLANNING:
+                # Hide main menu if we just entered planning phase
+                main_menu.hide()
         
         # Handle result screen events first (if visible)
         if result_screen.visible:
@@ -228,6 +325,11 @@ def main() -> None:
             curve_editor.draw(screen)
             curve_editor.draw_control_points(screen)
 
+        # Draw multiplayer UI if in multiplayer mode
+        if game_mode == 'multiplayer' and dual_view:
+            dual_view.draw_divider(screen)
+            dual_view.draw_labels(screen)
+
         # Draw UI
         ui_manager.draw(screen)
         
@@ -238,6 +340,8 @@ def main() -> None:
         pygame.display.flip()
         
     # Cleanup
+    if duel_session:
+        duel_session.disconnect()
     pygame.quit()
     sys.exit()
 
