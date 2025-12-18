@@ -220,6 +220,18 @@ class TestMainMenu:
         result = self.menu.handle_event(event)
         
         assert result == 'quit'
+    
+    def test_codex_button_exists(self):
+        """Test that the Codex button exists in the main menu."""
+        assert 'codex' in self.menu._buttons
+    
+    def test_codex_button_opens_panel(self):
+        """Test that clicking Codex button returns 'codex' action."""
+        codex_button = self.menu._buttons['codex']
+        center = codex_button.center
+        event = pygame.event.Event(pygame.MOUSEBUTTONDOWN, {'button': 1, 'pos': center})
+        result = self.menu.handle_event(event)
+        assert result == 'codex'
 
 
 if __name__ == "__main__":
