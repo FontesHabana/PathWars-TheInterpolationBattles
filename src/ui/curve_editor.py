@@ -7,7 +7,7 @@ dragging, and configuring control points.
 
 import pygame
 from enum import Enum, auto
-from typing import Optional, List, Tuple
+from typing import Optional, List, Tuple, Set
 
 from ui.components import Button, Panel, Label
 from core.curve_state import CurveState
@@ -64,6 +64,7 @@ class CurveEditorUI:
         renderer: "Renderer",
         curve_state: Optional[CurveState] = None,
         game_state: Optional[GameState] = None,
+        research_manager: Optional["ResearchManager"] = None,
     ) -> None:
         """
         Initialize the CurveEditorUI.
@@ -74,12 +75,18 @@ class CurveEditorUI:
             renderer: The Renderer instance for coordinate conversion.
             curve_state: Optional CurveState instance. Creates a new one if None.
             game_state: Optional GameState instance for money management.
+            research_manager: Optional ResearchManager for method locking.
         """
         self.screen_width = screen_width
         self.screen_height = screen_height
         self.renderer = renderer
         self.curve_state = curve_state if curve_state else CurveState()
         self.game_state = game_state
+        
+        # Available interpolation methods (starts with just 'linear')
+        self._available_methods: Set[str] = {'linear'}
+        if research_manager:
+            self._available_methods = research_manager.get_interpolation_methods()
 
         # Dragging state
         self._dragging_index: Optional[int] = None
@@ -146,6 +153,7 @@ class CurveEditorUI:
         panel.add(btn_remove)
 
         # Interpolation method buttons
+        # Linear - always available
         btn_linear = Button(
             "Linear (Free)",
             pygame.Rect(
@@ -158,27 +166,37 @@ class CurveEditorUI:
         )
         panel.add(btn_linear)
 
+        # Lagrange - requires research
+        lagrange_available = 'lagrange' in self._available_methods
+        lagrange_text = "Lagrange ($50)" if lagrange_available else "Lagrange (LOCKED)"
         btn_lagrange = Button(
-            "Lagrange ($50)",
+            lagrange_text,
             pygame.Rect(
                 panel_x + self.BUTTON_MARGIN,
                 panel_y + 180,
                 self.BUTTON_WIDTH,
                 self.BUTTON_HEIGHT
             ),
-            lambda: self._set_method('lagrange'),
+            lambda: self._set_method('lagrange') if lagrange_available else None,
+            bg_color=(50, 50, 50) if not lagrange_available else (70, 70, 70),
+            hover_color=(80, 80, 80) if not lagrange_available else (100, 100, 100),
         )
         panel.add(btn_lagrange)
 
+        # Spline - requires research
+        spline_available = 'spline' in self._available_methods
+        spline_text = "Spline ($100)" if spline_available else "Spline (LOCKED)"
         btn_spline = Button(
-            "Spline ($100)",
+            spline_text,
             pygame.Rect(
                 panel_x + self.BUTTON_MARGIN,
                 panel_y + 220,
                 self.BUTTON_WIDTH,
                 self.BUTTON_HEIGHT
             ),
-            lambda: self._set_method('spline'),
+            lambda: self._set_method('spline') if spline_available else None,
+            bg_color=(50, 50, 50) if not spline_available else (70, 70, 70),
+            hover_color=(80, 80, 80) if not spline_available else (100, 100, 100),
         )
         panel.add(btn_spline)
 
@@ -198,13 +216,18 @@ class CurveEditorUI:
 
     def _set_method(self, method: str) -> None:
         """
-        Set the interpolation method with cost enforcement.
+        Set the interpolation method with cost enforcement and research gating.
         
         Args:
             method: The interpolation method to switch to.
         """
         # Check if already using this method
         if self.curve_state.interpolation_method == method:
+            return
+        
+        # Check if method is available (unlocked via research)
+        if method not in self._available_methods:
+            print(f"[CurveEditor] {method} method is locked - research required")
             return
         
         # Get the cost for this method
@@ -221,6 +244,19 @@ class CurveEditorUI:
         else:
             # Free method or no game state (e.g., in tests)
             self.curve_state.set_method(method)
+    
+    def update_available_methods(self, methods: Set[str]) -> None:
+        """
+        Update the set of available interpolation methods.
+        
+        Called when research is unlocked to enable new methods.
+        
+        Args:
+            methods: Set of available method names.
+        """
+        self._available_methods = methods
+        # Rebuild the panel to update button states
+        self._panel = self._build_panel()
 
     def _find_point_at(
         self, x: int, y: int
