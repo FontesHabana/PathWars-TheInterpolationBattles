@@ -307,6 +307,10 @@ def main() -> None:
             if event.type == pygame.QUIT:
                 running = False
                 break
+            
+            # Track mouse motion for tower preview
+            if event.type == pygame.MOUSEMOTION:
+                ui_manager.update_mouse_position(event.pos, renderer)
                 
             # UI handles event first
             if ui_manager.handle_event(event):
@@ -386,6 +390,9 @@ def main() -> None:
         if game_mode == 'multiplayer' and dual_view:
             dual_view.draw_divider(screen)
             dual_view.draw_labels(screen)
+
+        # Draw tower preview (if tower selected and in planning phase)
+        ui_manager.draw_tower_preview(screen, renderer)
 
         # Draw UI
         ui_manager.draw(screen)

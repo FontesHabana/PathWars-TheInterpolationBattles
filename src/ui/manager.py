@@ -5,7 +5,7 @@ Manages all UI panels and handles event delegation.
 """
 
 import pygame
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 from ui.components import Button, Panel, Label
 from ui.tower_info_panel import TowerInfoPanel
@@ -28,6 +28,9 @@ class UIManager:
 
         # Track currently selected tower type for placement (None = no tower selected)
         self.selected_tower_type: Optional[TowerType] = None
+
+        # Track mouse position for tower preview
+        self._mouse_grid_pos: Optional[Tuple[int, int]] = None
 
         # Tower info panel for displaying selected tower details
         self.tower_info_panel = TowerInfoPanel(
@@ -214,6 +217,89 @@ class UIManager:
             tower: Tower to select, or None to deselect.
         """
         self.tower_info_panel.select_tower(tower)
+
+    def update_mouse_position(self, screen_pos: Tuple[int, int], renderer) -> None:
+        """
+        Update the mouse position for tower preview.
+        
+        Args:
+            screen_pos: Screen position of the mouse.
+            renderer: Renderer instance for coordinate conversion.
+        """
+        # Convert screen pos to grid pos
+        grid_x, grid_y = renderer.iso_to_cart(*screen_pos)
+        
+        # Check if position is valid
+        from core.grid import Grid
+        if hasattr(renderer, 'grid'):
+            grid: Grid = renderer.grid
+            if grid.is_valid_position(grid_x, grid_y):
+                self._mouse_grid_pos = (grid_x, grid_y)
+            else:
+                self._mouse_grid_pos = None
+        else:
+            self._mouse_grid_pos = None
+
+    def draw_tower_preview(self, screen: pygame.Surface, renderer) -> None:
+        """
+        Draw tower preview under mouse cursor.
+        
+        Args:
+            screen: Pygame surface to draw on.
+            renderer: Renderer instance for coordinate conversion and sprite access.
+        """
+        # Don't show preview if no tower selected
+        if self.selected_tower_type is None:
+            return
+        
+        # Don't show preview if mouse not on valid grid position
+        if self._mouse_grid_pos is None:
+            return
+        
+        # Don't show preview during battle phase
+        if self.game_state.current_phase != GamePhase.PLANNING:
+            return
+        
+        grid_x, grid_y = self._mouse_grid_pos
+        
+        # Determine if position is valid (not occupied)
+        from core.grid import Grid
+        grid: Grid = renderer.grid
+        is_valid = not grid.is_occupied(grid_x, grid_y)
+        
+        # Choose tint color based on validity
+        if is_valid:
+            tint_color = (100, 255, 100)  # Green
+        else:
+            tint_color = (255, 100, 100)  # Red
+        
+        # Get screen position
+        screen_pos = renderer.cart_to_iso(grid_x, grid_y)
+        
+        # Get sprite for tower type
+        from graphics.assets import AssetManager
+        
+        # Map tower type to sprite name
+        sprite_name_map = {
+            TowerType.DEAN: "tower_dean",
+            TowerType.CALCULUS: "tower_calculus",
+            TowerType.PHYSICS: "tower_physics",
+            TowerType.STATISTICS: "tower_statistics",
+        }
+        
+        sprite_name = sprite_name_map.get(self.selected_tower_type, "tower_dean")
+        sprite = AssetManager.get_sprite(sprite_name)
+        
+        if sprite:
+            # Draw with tint and transparency
+            draw_pos = (screen_pos[0], screen_pos[1] - renderer.TOWER_OFFSET_Y)
+            renderer.draw_sprite_with_tint(sprite, draw_pos, tint_color, alpha=128)
+        else:
+            # Fallback: draw a semi-transparent circle
+            draw_pos = (screen_pos[0], screen_pos[1] - renderer.TOWER_OFFSET_Y)
+            circle_surface = pygame.Surface((40, 40), pygame.SRCALPHA)
+            pygame.draw.circle(circle_surface, (*tint_color, 128), (20, 20), 15)
+            screen.blit(circle_surface, (draw_pos[0] - 20, draw_pos[1] - 20))
 
     def handle_event(self, event: pygame.event.Event) -> bool:
         """

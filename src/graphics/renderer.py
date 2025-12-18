@@ -357,3 +357,37 @@ class Renderer:
         self.draw_hud(game_state)
         # NOTE: pygame.display.flip() is called by main.py after all UI is drawn
 
+    def draw_sprite_with_tint(
+        self,
+        sprite: pygame.Surface,
+        position: Tuple[int, int],
+        tint_color: Tuple[int, int, int],
+        alpha: int = 128
+    ) -> None:
+        """
+        Draw a sprite with a color tint and transparency.
+        
+        Args:
+            sprite: The sprite surface to draw.
+            position: The (x, y) screen position to draw at (center).
+            tint_color: RGB color tuple for the tint.
+            alpha: Transparency level (0-255, where 0 is fully transparent).
+        """
+        # Create a copy of the sprite
+        tinted_sprite = sprite.copy()
+        
+        # Set alpha
+        tinted_sprite.set_alpha(alpha)
+        
+        # Apply color tint by filling with blend mode
+        tint_surface = pygame.Surface(tinted_sprite.get_size())
+        tint_surface.fill(tint_color)
+        tinted_sprite.blit(tint_surface, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
+        
+        # Center the sprite at position
+        sprite_rect = tinted_sprite.get_rect()
+        sprite_rect.center = position
+        
+        self.screen.blit(tinted_sprite, sprite_rect)
+
+
