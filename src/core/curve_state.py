@@ -7,7 +7,7 @@ and provides access to the interpolated path.
 
 from typing import List, Tuple
 
-from math_engine.interpolator import Interpolator
+from math_engine.interpolation_registry import get_registry
 
 
 class CurveLockedError(Exception):
@@ -201,23 +201,14 @@ class CurveState:
         if len(self._control_points) < 2:
             return list(self._control_points)
 
-        if self._interpolation_method == 'linear':
-            return Interpolator.linear_interpolate(
-                self._control_points, num_points=resolution
-            )
-        elif self._interpolation_method == 'lagrange':
-            return Interpolator.lagrange_interpolate(
-                self._control_points, num_points=resolution
-            )
-        elif self._interpolation_method == 'spline':
-            return Interpolator.cubic_spline_interpolate(
-                self._control_points, num_points=resolution
-            )
-        else:
-            # Fallback to linear
-            return Interpolator.linear_interpolate(
-                self._control_points, num_points=resolution
-            )
+        registry = get_registry()
+        try:
+            strategy = registry.get_strategy(self._interpolation_method)
+            return strategy.interpolate(self._control_points, resolution=resolution)
+        except KeyError:
+            # Fallback to linear if method not found
+            strategy = registry.get_strategy('linear')
+            return strategy.interpolate(self._control_points, resolution=resolution)
 
     def clear_points(self) -> None:
         """
