@@ -281,12 +281,12 @@ class PhaseManager:
             )
         
         # Exit current phase
-        self._current_phase.exit(None)  # GameState not needed for now
+        self._current_phase.exit()
         
         # Create and enter new phase
         old_phase = self._current_phase.phase_type
         self._current_phase = create_phase_state(new_phase_type)
-        self._current_phase.enter(None)  # GameState not needed for now
+        self._current_phase.enter()
         
         # Reset modification counters when entering new modification phase
         if new_phase_type == PhaseType.PATH_MODIFICATION:

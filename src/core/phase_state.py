@@ -7,10 +7,6 @@ Each phase defines specific behavior and allowed transitions.
 
 from abc import ABC, abstractmethod
 from enum import Enum, auto
-from typing import TYPE_CHECKING, Optional
-
-if TYPE_CHECKING:
-    from .game_state import GameState
 
 
 class PhaseType(Enum):
@@ -43,23 +39,13 @@ class GamePhaseState(ABC):
         pass
     
     @abstractmethod
-    def enter(self, game_state: 'GameState') -> None:
-        """
-        Called when entering this phase.
-        
-        Args:
-            game_state: The game state instance.
-        """
+    def enter(self) -> None:
+        """Called when entering this phase."""
         pass
     
     @abstractmethod
-    def exit(self, game_state: 'GameState') -> None:
-        """
-        Called when exiting this phase.
-        
-        Args:
-            game_state: The game state instance.
-        """
+    def exit(self) -> None:
+        """Called when exiting this phase."""
         pass
     
     @abstractmethod
@@ -100,12 +86,11 @@ class PreparationPhaseState(GamePhaseState):
     def phase_type(self) -> PhaseType:
         return PhaseType.PREPARATION
     
-    def enter(self, game_state: 'GameState') -> None:
+    def enter(self) -> None:
         """Initialize preparation phase."""
-        # Points will be placed by players
         pass
     
-    def exit(self, game_state: 'GameState') -> None:
+    def exit(self) -> None:
         """Lock initial points when exiting preparation."""
         pass
     
@@ -146,11 +131,11 @@ class PathModificationPhaseState(GamePhaseState):
     def phase_type(self) -> PhaseType:
         return PhaseType.PATH_MODIFICATION
     
-    def enter(self, game_state: 'GameState') -> None:
+    def enter(self) -> None:
         """Initialize path modification phase."""
         pass
     
-    def exit(self, game_state: 'GameState') -> None:
+    def exit(self) -> None:
         """Lock any new points when exiting."""
         pass
     
@@ -187,11 +172,11 @@ class BuildingPhaseState(GamePhaseState):
     def phase_type(self) -> PhaseType:
         return PhaseType.BUILDING
     
-    def enter(self, game_state: 'GameState') -> None:
+    def enter(self) -> None:
         """Initialize building phase."""
         pass
     
-    def exit(self, game_state: 'GameState') -> None:
+    def exit(self) -> None:
         """Finalize building phase."""
         pass
     
@@ -229,11 +214,11 @@ class CombatPhaseState(GamePhaseState):
     def phase_type(self) -> PhaseType:
         return PhaseType.COMBAT
     
-    def enter(self, game_state: 'GameState') -> None:
+    def enter(self) -> None:
         """Initialize combat phase."""
         pass
     
-    def exit(self, game_state: 'GameState') -> None:
+    def exit(self) -> None:
         """Clean up combat phase."""
         pass
     
@@ -254,8 +239,8 @@ class CombatPhaseState(GamePhaseState):
         return False
     
     def get_allowed_transitions(self) -> list[PhaseType]:
-        """Can transition to round end or path modification."""
-        return [PhaseType.ROUND_END, PhaseType.PATH_MODIFICATION]
+        """Can transition to round end."""
+        return [PhaseType.ROUND_END]
 
 
 class RoundEndPhaseState(GamePhaseState):
@@ -270,11 +255,11 @@ class RoundEndPhaseState(GamePhaseState):
     def phase_type(self) -> PhaseType:
         return PhaseType.ROUND_END
     
-    def enter(self, game_state: 'GameState') -> None:
+    def enter(self) -> None:
         """Initialize round end phase."""
         pass
     
-    def exit(self, game_state: 'GameState') -> None:
+    def exit(self) -> None:
         """Transition to next round."""
         pass
     

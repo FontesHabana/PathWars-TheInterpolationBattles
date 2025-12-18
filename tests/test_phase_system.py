@@ -101,7 +101,7 @@ class TestPhaseStates:
         
         allowed = state.get_allowed_transitions()
         assert PhaseType.ROUND_END in allowed
-        assert PhaseType.PATH_MODIFICATION in allowed
+        assert len(allowed) == 1  # Only ROUND_END, not direct to PATH_MODIFICATION
     
     def test_round_end_state_permissions(self):
         """Test RoundEndPhaseState action permissions."""
