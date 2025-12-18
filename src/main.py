@@ -30,6 +30,7 @@ from ui.wave_banner import WaveBanner
 from ui.result_screen import ResultScreen
 from ui.main_menu import MainMenu
 from ui.codex_panel import CodexPanel
+from ui.pause_menu import PauseMenu
 from core.curve_state import CurveState
 from multiplayer.duel_session import DuelSession, DuelPhase
 from multiplayer.dual_view import DualView
@@ -102,6 +103,7 @@ def main() -> None:
     # Initialize UI Feedback Components
     wave_banner = WaveBanner(SCREEN_WIDTH, SCREEN_HEIGHT)
     result_screen = ResultScreen(SCREEN_WIDTH, SCREEN_HEIGHT)
+    pause_menu = PauseMenu(SCREEN_WIDTH, SCREEN_HEIGHT)
     
     # Initialize Effect Manager
     effect_manager = EffectManager()
@@ -302,11 +304,78 @@ def main() -> None:
             pygame.display.flip()
             continue
         
+        # Handle pause menu (single player only)
+        if pause_menu.visible and game_mode == 'single':
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+                    break
+                
+                # ESC to close pause menu
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                    pause_menu.hide()
+                    continue
+                
+                action = pause_menu.handle_event(event)
+                if action == 'resume':
+                    pause_menu.hide()
+                    logger.info("Resuming game")
+                elif action == 'restart':
+                    # Reset game state and restart
+                    game_state.reset()
+                    wave_manager.reset()
+                    grid.clear()
+                    current_wave_number = 0
+                    game_over = False
+                    victory = False
+                    game_stats = {"Waves Survived": 0, "Enemies Killed": 0, "Money Earned": 0}
+                    pause_menu.hide()
+                    logger.info("Restarting game")
+                elif action == 'main_menu':
+                    # Return to main menu
+                    game_state.reset()
+                    wave_manager.reset()
+                    grid.clear()
+                    current_wave_number = 0
+                    game_over = False
+                    victory = False
+                    game_stats = {"Waves Survived": 0, "Enemies Killed": 0, "Money Earned": 0}
+                    game_mode = None
+                    pause_menu.hide()
+                    main_menu.show()
+                    logger.info("Returning to main menu")
+            
+            # Draw game state underneath
+            renderer.render(game_state, combat_manager)
+            
+            # Draw curve editor during PLANNING phase
+            if game_state.current_phase == GamePhase.PLANNING:
+                path = curve_state.get_interpolated_path(100)
+                if len(path) >= 2:
+                    renderer.draw_curve(path, color=CURVE_COLOR, width=2)
+                curve_editor.draw(screen)
+                curve_editor.draw_control_points(screen)
+            
+            # Draw UI
+            ui_manager.draw(screen)
+            wave_banner.draw(screen)
+            
+            # Draw pause menu overlay on top
+            pause_menu.draw(screen)
+            pygame.display.flip()
+            continue
+        
         # Normal game loop
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
                 break
+            
+            # ESC to open pause menu (single player only, not in main menu or result screen)
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                if game_mode == 'single' and not main_menu.visible and not result_screen.visible:
+                    pause_menu.toggle()
+                    continue
             
             # Track mouse motion for tower preview
             if event.type == pygame.MOUSEMOTION:
@@ -329,51 +398,53 @@ def main() -> None:
             
         # Sync tower selection
         input_handler.selected_tower_type = ui_manager.selected_tower_type
-            
-        # Update Ready Manager during PLANNING phase
-        if game_state.current_phase == GamePhase.PLANNING:
-            ready_manager.update(dt)
-            
-        # Update
-        entities = game_state.entities_collection
         
-        # Update Enemies
-        for enemy in entities.get('enemies', []):
-            enemy.update(dt)
-
-        # Update Effects on enemies
-        effect_manager.update(dt, entities.get('enemies', []))
-
-        # Update Combat
-        combat_manager.update(dt, game_state)
-        
-        # Update Towers
-        for tower in entities.get('towers', []):
-            tower.update(dt)
-        
-        # Update Wave Manager during BATTLE phase
-        if game_state.current_phase == GamePhase.BATTLE:
-            if not wave_manager.is_active:
-                current_wave_number += 1
-                if current_wave_number <= wave_manager.total_waves:
-                    wave_manager.start_wave(current_wave_number, get_enemy_path())
+        # Don't update game logic if paused
+        if not pause_menu.visible:
+            # Update Ready Manager during PLANNING phase
+            if game_state.current_phase == GamePhase.PLANNING:
+                ready_manager.update(dt)
+                
+            # Update
+            entities = game_state.entities_collection
             
-            new_enemies = wave_manager.update(dt)
-            for enemy in new_enemies:
-                game_state.add_entity('enemies', enemy)
-            
-            for enemy in game_state.entities_collection.get('enemies', []):
+            # Update Enemies
+            for enemy in entities.get('enemies', []):
                 enemy.update(dt)
+
+            # Update Effects on enemies
+            effect_manager.update(dt, entities.get('enemies', []))
+
+            # Update Combat
+            combat_manager.update(dt, game_state)
             
-            # Check for wave completion and victory
-            if wave_manager.is_wave_complete():
-                if not wave_manager.has_more_waves():
-                    victory = True
-                    game_state.change_phase(GamePhase.RESULT)
-                    result_screen.show_victory(game_stats)
-        
-        # Update wave banner
-        wave_banner.update(dt)
+            # Update Towers
+            for tower in entities.get('towers', []):
+                tower.update(dt)
+            
+            # Update Wave Manager during BATTLE phase
+            if game_state.current_phase == GamePhase.BATTLE:
+                if not wave_manager.is_active:
+                    current_wave_number += 1
+                    if current_wave_number <= wave_manager.total_waves:
+                        wave_manager.start_wave(current_wave_number, get_enemy_path())
+                
+                new_enemies = wave_manager.update(dt)
+                for enemy in new_enemies:
+                    game_state.add_entity('enemies', enemy)
+                
+                for enemy in game_state.entities_collection.get('enemies', []):
+                    enemy.update(dt)
+                
+                # Check for wave completion and victory
+                if wave_manager.is_wave_complete():
+                    if not wave_manager.has_more_waves():
+                        victory = True
+                        game_state.change_phase(GamePhase.RESULT)
+                        result_screen.show_victory(game_stats)
+            
+            # Update wave banner
+            wave_banner.update(dt)
             
         # Draw everything
         renderer.render(game_state, combat_manager)
