@@ -376,6 +376,7 @@ class NetworkManager:
         """
         self._running = False
         self._is_connected = False
+        self._is_host = False
         self._cleanup_sockets()
 
         if self._server_thread and self._server_thread.is_alive():
@@ -387,8 +388,24 @@ class NetworkManager:
         self._receive_thread = None
         self._observers.clear()
         self._connection_observers.clear()
+        self._client_address = None
 
         logger.info("NetworkManager closed")
+    
+    def reset(self) -> None:
+        """
+        Reset the NetworkManager to allow new connections.
+        
+        This closes any existing connections and resets internal state,
+        allowing the manager to be reused for new host/connect operations.
+        """
+        self.close()
+        # Re-initialize internal state without clearing the singleton
+        self._serializer = Serializer()
+        self._running = False
+        self._is_host = False
+        self._is_connected = False
+        logger.info("NetworkManager reset for reuse")
 
     def _cleanup_sockets(self) -> None:
         """Clean up socket resources."""

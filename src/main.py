@@ -45,9 +45,11 @@ def main() -> None:
     pygame.init()
     SCREEN_WIDTH = 1920
     SCREEN_HEIGHT = 1080
-    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+    # Allow window resizing for fullscreen toggle
+    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.RESIZABLE)
     pygame.display.set_caption("PathWars: The Interpolation Duel")
     clock = pygame.time.Clock()
+    is_fullscreen = False
     
     # Preload all assets
     logger.info("Preloading assets...")
@@ -64,6 +66,9 @@ def main() -> None:
     game_mode: Optional[str] = None  # 'single', 'multiplayer', None
     duel_session: Optional[DuelSession] = None
     dual_view: Optional[DualView] = None
+    
+    # Pause menu state for single player
+    is_paused = False
 
     # 2. Initialize Core Systems
     game_state = GameState()
@@ -284,7 +289,17 @@ def main() -> None:
                     break
                 action = result_screen.handle_event(event)
                 if action == "quit":
-                    running = False
+                    # Return to main menu instead of exiting application
+                    result_screen.hide()
+                    game_state.reset()
+                    wave_manager.reset()
+                    grid.clear()
+                    current_wave_number = 0
+                    game_over = False
+                    victory = False
+                    game_stats = {"Waves Survived": 0, "Enemies Killed": 0, "Money Earned": 0}
+                    game_mode = None
+                    main_menu.show()
                 elif action == "restart":
                     # Reset game state
                     game_state.reset()
@@ -302,11 +317,131 @@ def main() -> None:
             pygame.display.flip()
             continue
         
+        # Handle pause menu for single player mode
+        if is_paused and game_mode == 'single':
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+                    break
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        is_paused = False  # Resume game
+                    elif event.key == pygame.K_r:
+                        # Restart game
+                        is_paused = False
+                        game_state.reset()
+                        wave_manager.reset()
+                        grid.clear()
+                        current_wave_number = 0
+                        game_over = False
+                        victory = False
+                        game_stats = {"Waves Survived": 0, "Enemies Killed": 0, "Money Earned": 0}
+                    elif event.key == pygame.K_m or event.key == pygame.K_q:
+                        # Return to main menu
+                        is_paused = False
+                        game_state.reset()
+                        wave_manager.reset()
+                        grid.clear()
+                        current_wave_number = 0
+                        game_over = False
+                        victory = False
+                        game_stats = {"Waves Survived": 0, "Enemies Killed": 0, "Money Earned": 0}
+                        game_mode = None
+                        main_menu.show()
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    mouse_pos = event.pos
+                    # Check pause menu button clicks
+                    center_x = SCREEN_WIDTH // 2
+                    center_y = SCREEN_HEIGHT // 2
+                    button_width = 200
+                    button_height = 50
+                    
+                    resume_rect = pygame.Rect(center_x - button_width // 2, center_y - 80, button_width, button_height)
+                    restart_rect = pygame.Rect(center_x - button_width // 2, center_y - 10, button_width, button_height)
+                    menu_rect = pygame.Rect(center_x - button_width // 2, center_y + 60, button_width, button_height)
+                    
+                    if resume_rect.collidepoint(mouse_pos):
+                        is_paused = False
+                    elif restart_rect.collidepoint(mouse_pos):
+                        is_paused = False
+                        game_state.reset()
+                        wave_manager.reset()
+                        grid.clear()
+                        current_wave_number = 0
+                        game_over = False
+                        victory = False
+                        game_stats = {"Waves Survived": 0, "Enemies Killed": 0, "Money Earned": 0}
+                    elif menu_rect.collidepoint(mouse_pos):
+                        is_paused = False
+                        game_state.reset()
+                        wave_manager.reset()
+                        grid.clear()
+                        current_wave_number = 0
+                        game_over = False
+                        victory = False
+                        game_stats = {"Waves Survived": 0, "Enemies Killed": 0, "Money Earned": 0}
+                        game_mode = None
+                        main_menu.show()
+            
+            # Draw pause menu
+            renderer.render(game_state, combat_manager)
+            # Draw semi-transparent overlay
+            overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
+            overlay.fill((0, 0, 0, 180))
+            screen.blit(overlay, (0, 0))
+            
+            # Draw pause menu title
+            pause_font = pygame.font.Font(None, 72)
+            pause_text = pause_font.render("PAUSED", True, (255, 255, 255))
+            pause_rect = pause_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 150))
+            screen.blit(pause_text, pause_rect)
+            
+            # Draw pause menu buttons
+            button_font = pygame.font.Font(None, 36)
+            center_x = SCREEN_WIDTH // 2
+            center_y = SCREEN_HEIGHT // 2
+            button_width = 200
+            button_height = 50
+            
+            buttons = [
+                ("Resume (ESC)", pygame.Rect(center_x - button_width // 2, center_y - 80, button_width, button_height), (60, 120, 60)),
+                ("Restart (R)", pygame.Rect(center_x - button_width // 2, center_y - 10, button_width, button_height), (60, 60, 120)),
+                ("Main Menu (M)", pygame.Rect(center_x - button_width // 2, center_y + 60, button_width, button_height), (120, 60, 60)),
+            ]
+            
+            mouse_pos = pygame.mouse.get_pos()
+            for text, rect, color in buttons:
+                is_hovered = rect.collidepoint(mouse_pos)
+                draw_color = tuple(min(c + 40, 255) for c in color) if is_hovered else color
+                pygame.draw.rect(screen, draw_color, rect)
+                pygame.draw.rect(screen, (150, 150, 150), rect, 2)
+                btn_text = button_font.render(text, True, (255, 255, 255))
+                btn_rect = btn_text.get_rect(center=rect.center)
+                screen.blit(btn_text, btn_rect)
+            
+            pygame.display.flip()
+            continue
+        
         # Normal game loop
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
                 break
+            
+            # Handle fullscreen toggle (F11)
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_F11:
+                is_fullscreen = not is_fullscreen
+                if is_fullscreen:
+                    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.FULLSCREEN)
+                else:
+                    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.RESIZABLE)
+                continue
+            
+            # Handle pause (ESC) in single player during game
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                if game_mode == 'single' and not main_menu.visible:
+                    is_paused = True
+                    continue
             
             # Track mouse motion for tower preview
             if event.type == pygame.MOUSEMOTION:

@@ -154,6 +154,12 @@ class DuelSession:
             True if hosting started successfully, False otherwise.
         """
         logger.info(f"Attempting to host game on port {port}")
+        
+        # Reset the network manager to ensure clean state
+        self._network_manager.reset()
+        # Re-subscribe to connection events after reset
+        self._network_manager.subscribe_connection(self._on_connection_change)
+        
         self._phase = DuelPhase.CONNECTING
         # Set role BEFORE starting host so callback has access to it
         self._role = PlayerRole.HOST
@@ -180,6 +186,12 @@ class DuelSession:
             True if connection successful, False otherwise.
         """
         logger.info(f"Attempting to join game at {ip}:{port}")
+        
+        # Reset the network manager to ensure clean state
+        self._network_manager.reset()
+        # Re-subscribe to connection events after reset
+        self._network_manager.subscribe_connection(self._on_connection_change)
+        
         self._phase = DuelPhase.CONNECTING
         # Set role BEFORE connecting so callback has access to it
         self._role = PlayerRole.CLIENT
