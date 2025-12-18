@@ -7,7 +7,7 @@ the factory for creating them.
 
 from entities.base import Entity, EntityType, EntityState, Vector2
 from entities.enemy import Enemy, EnemyType
-from entities.tower import Tower, TowerType
+from entities.tower import Tower, TowerType, TowerLevel, TowerUpgradeError
 from entities.factory import EntityFactory
 
 __all__ = [
@@ -19,5 +19,7 @@ __all__ = [
     "EnemyType",
     "Tower",
     "TowerType",
+    "TowerLevel",
+    "TowerUpgradeError",
     "EntityFactory",
 ]

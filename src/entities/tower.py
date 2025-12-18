@@ -5,8 +5,9 @@ This module defines the Tower class and tower types that defend against
 enemies by attacking them as they pass.
 """
 
+import uuid
 from enum import Enum, auto
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from entities.base import Entity, EntityState, EntityType, Vector2
 
@@ -17,6 +18,17 @@ class TowerType(Enum):
     CALCULUS = auto()    # Ranged - fast attack, medium damage
     PHYSICS = auto()     # Cannon/AoE - slow attack, high damage
     STATISTICS = auto()  # Support/Slow - debuff, no damage
+
+
+class TowerLevel(Enum):
+    """Enumeration of tower upgrade levels."""
+    MASTERY = 1      # Base level (Grado de Maestría)
+    DOCTORATE = 2    # Upgraded level (Doctorado)
+
+
+class TowerUpgradeError(Exception):
+    """Raised when a tower upgrade fails."""
+    pass
 
 
 class Tower(Entity):
@@ -32,6 +44,8 @@ class Tower(Entity):
         attack_range: Maximum distance to attack enemies.
         cooldown: Time between attacks in seconds.
         cooldown_remaining: Time until next attack is ready.
+        level: Current upgrade level (MASTERY or DOCTORATE).
+        id: Unique identifier for this tower.
     """
 
     # Default stats by tower type
@@ -71,6 +85,25 @@ class Tower(Entity):
         },
     }
 
+    # Upgrade multipliers for each stat
+    _UPGRADE_MULTIPLIERS = {
+        "damage": 1.5,           # +50% damage
+        "attack_range": 1.25,    # +25% range
+        "cooldown": 0.8,         # -20% cooldown (faster attacks)
+        "stun_duration": 1.5,    # +50% stun duration
+        "splash_radius": 1.3,    # +30% splash radius
+        "slow_amount": 1.25,     # +25% slow effect
+        "slow_duration": 1.5,    # +50% slow duration
+    }
+
+    # Upgrade costs by tower type
+    _UPGRADE_COSTS = {
+        TowerType.DEAN: 75,       # Base cost $50, upgrade $75
+        TowerType.CALCULUS: 100,  # Base cost $75, upgrade $100
+        TowerType.PHYSICS: 150,   # Base cost $100, upgrade $150
+        TowerType.STATISTICS: 90, # Base cost $60, upgrade $90
+    }
+
     def __init__(
         self,
         position: Vector2,
@@ -78,6 +111,7 @@ class Tower(Entity):
         damage: Optional[int] = None,
         attack_range: Optional[float] = None,
         cooldown: Optional[float] = None,
+        level: TowerLevel = TowerLevel.MASTERY,
     ) -> None:
         """
         Initialize a new Tower.
@@ -88,32 +122,82 @@ class Tower(Entity):
             damage: Override default damage for this tower type.
             attack_range: Override default range for this tower type.
             cooldown: Override default cooldown for this tower type.
+            level: Initial tower level (default: MASTERY).
         """
         super().__init__(position, EntityType.TOWER)
 
+        self._id: str = str(uuid.uuid4())
         self._tower_type = tower_type
+        self._level: TowerLevel = TowerLevel.MASTERY
         stats = self._TOWER_STATS[tower_type]
 
-        self._damage: int = damage if damage is not None else stats["damage"]
-        self._attack_range: float = (
+        # Store base stats (before any upgrades)
+        self._base_damage: int = damage if damage is not None else stats["damage"]
+        self._base_attack_range: float = (
             attack_range if attack_range is not None else stats["attack_range"]
         )
-        self._cooldown: float = cooldown if cooldown is not None else stats["cooldown"]
+        self._base_cooldown: float = cooldown if cooldown is not None else stats["cooldown"]
+        self._base_stun_duration: float = stats.get("stun_duration", 0.0)
+        self._base_splash_radius: float = stats.get("splash_radius", 0.0)
+        self._base_slow_amount: float = stats.get("slow_amount", 0.0)
+        self._base_slow_duration: float = stats.get("slow_duration", 0.0)
+
+        # Set current stats to base stats
+        self._damage: int = self._base_damage
+        self._attack_range: float = self._base_attack_range
+        self._cooldown: float = self._base_cooldown
         self._cooldown_remaining: float = 0.0
         self._current_target: Optional["Enemy"] = None
 
         # Special effect stats
-        self._stun_duration: float = stats.get("stun_duration", 0.0)
-        self._splash_radius: float = stats.get("splash_radius", 0.0)
-        self._slow_amount: float = stats.get("slow_amount", 0.0)
-        self._slow_duration: float = stats.get("slow_duration", 0.0)
+        self._stun_duration: float = self._base_stun_duration
+        self._splash_radius: float = self._base_splash_radius
+        self._slow_amount: float = self._base_slow_amount
+        self._slow_duration: float = self._base_slow_duration
 
         self.state = EntityState.ACTIVE
+
+        # If initialized at DOCTORATE level, apply upgrade multipliers
+        if level == TowerLevel.DOCTORATE:
+            self._level = TowerLevel.DOCTORATE
+            self._apply_upgrade_multipliers()
 
     @property
     def tower_type(self) -> TowerType:
         """Get the type of tower."""
         return self._tower_type
+
+    @property
+    def level(self) -> TowerLevel:
+        """Get the current upgrade level."""
+        return self._level
+
+    @property
+    def id(self) -> str:
+        """Get the unique identifier of this tower."""
+        return self._id
+
+    @property
+    def upgrade_cost(self) -> int:
+        """
+        Get the cost to upgrade this tower.
+        
+        Returns:
+            Cost in money to upgrade, or 0 if already at max level.
+        """
+        if self._level == TowerLevel.DOCTORATE:
+            return 0
+        return self._UPGRADE_COSTS[self._tower_type]
+
+    @property
+    def can_upgrade(self) -> bool:
+        """
+        Check if this tower can be upgraded.
+        
+        Returns:
+            True if tower is at MASTERY level, False if at DOCTORATE.
+        """
+        return self._level == TowerLevel.MASTERY
 
     @property
     def damage(self) -> int:
@@ -174,6 +258,75 @@ class Tower(Entity):
             self._cooldown_remaining -= dt
             self._cooldown_remaining = max(0, self._cooldown_remaining)
         return self.can_attack
+
+    def _apply_upgrade_multipliers(self) -> None:
+        """
+        Apply upgrade multipliers to tower stats.
+        
+        This is called internally when upgrading a tower to DOCTORATE level.
+        """
+        self._damage = int(self._base_damage * self._UPGRADE_MULTIPLIERS["damage"])
+        self._attack_range = self._base_attack_range * self._UPGRADE_MULTIPLIERS["attack_range"]
+        self._cooldown = self._base_cooldown * self._UPGRADE_MULTIPLIERS["cooldown"]
+        self._stun_duration = self._base_stun_duration * self._UPGRADE_MULTIPLIERS["stun_duration"]
+        self._splash_radius = self._base_splash_radius * self._UPGRADE_MULTIPLIERS["splash_radius"]
+        
+        # Slow amount is capped at 1.0 (100% slow = complete stop)
+        self._slow_amount = min(
+            1.0, 
+            self._base_slow_amount * self._UPGRADE_MULTIPLIERS["slow_amount"]
+        )
+        self._slow_duration = self._base_slow_duration * self._UPGRADE_MULTIPLIERS["slow_duration"]
+
+    def upgrade(self) -> bool:
+        """
+        Upgrade this tower to DOCTORATE level.
+        
+        Returns:
+            True if upgrade was successful, False if already at max level.
+        """
+        if not self.can_upgrade:
+            return False
+        
+        self._level = TowerLevel.DOCTORATE
+        self._apply_upgrade_multipliers()
+        return True
+
+    def get_upgrade_preview(self) -> Dict[str, Dict[str, float]]:
+        """
+        Get a preview of stats after upgrading.
+        
+        Returns:
+            Dictionary with 'current' and 'upgraded' stat dictionaries.
+            Empty if already at max level.
+        """
+        if not self.can_upgrade:
+            return {}
+        
+        current_stats = {
+            "damage": self._damage,
+            "attack_range": self._attack_range,
+            "cooldown": self._cooldown,
+            "stun_duration": self._stun_duration,
+            "splash_radius": self._splash_radius,
+            "slow_amount": self._slow_amount,
+            "slow_duration": self._slow_duration,
+        }
+        
+        upgraded_stats = {
+            "damage": int(self._base_damage * self._UPGRADE_MULTIPLIERS["damage"]),
+            "attack_range": self._base_attack_range * self._UPGRADE_MULTIPLIERS["attack_range"],
+            "cooldown": self._base_cooldown * self._UPGRADE_MULTIPLIERS["cooldown"],
+            "stun_duration": self._base_stun_duration * self._UPGRADE_MULTIPLIERS["stun_duration"],
+            "splash_radius": self._base_splash_radius * self._UPGRADE_MULTIPLIERS["splash_radius"],
+            "slow_amount": min(1.0, self._base_slow_amount * self._UPGRADE_MULTIPLIERS["slow_amount"]),
+            "slow_duration": self._base_slow_duration * self._UPGRADE_MULTIPLIERS["slow_duration"],
+        }
+        
+        return {
+            "current": current_stats,
+            "upgraded": upgraded_stats,
+        }
 
     def is_in_range(self, target_position: Vector2) -> bool:
         """
