@@ -3,6 +3,10 @@ Phase Manager for orchestrating game loop and phase transitions.
 
 This module implements the core game loop logic, managing phase transitions,
 round tracking, and enforcing control point placement constraints.
+
+MULTIPLAYER ASYMMETRIC MODEL:
+In multiplayer matches, control points are placed on the RIVAL's map to design
+attack paths, while towers are built on the player's OWN map for defense.
 """
 
 import logging

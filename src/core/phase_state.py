@@ -3,6 +3,15 @@ Game Phase State Pattern implementation.
 
 This module implements the State Pattern for managing game phases.
 Each phase defines specific behavior and allowed transitions.
+
+MULTIPLAYER ASYMMETRIC MODEL:
+In multiplayer, the game uses an asymmetric model:
+- PATH_MODIFICATION/PREPARATION: Players edit control points on the RIVAL's map
+  to design the attack path for their enemies.
+- BUILDING: Players place towers on their OWN map to defend against the rival's
+  incoming enemies.
+- COMBAT: Enemies follow paths, towers defend. Players can CONTINUE to build/upgrade
+  towers during combat.
 """
 
 from abc import ABC, abstractmethod
@@ -78,7 +87,8 @@ class PreparationPhaseState(GamePhaseState):
     """
     Initial preparation phase (Round 1 only).
     
-    Players place 2 initial control points on start/end borders.
+    In multiplayer: Players place 2 initial control points on the RIVAL's map
+    (start/end borders) to define the attack path their enemies will follow.
     These points can be moved freely during this phase.
     """
     
@@ -119,8 +129,11 @@ class PathModificationPhaseState(GamePhaseState):
     """
     Path modification phase (Rounds 2+).
     
+    In multiplayer: Players modify control points on the RIVAL's map to adjust
+    the attack path for their enemies.
+    
     Players can:
-    - Add or remove at most 1 control point
+    - Add or remove at most 1 control point on the rival's map
     - Change interpolation method
     - Queue mercenaries for the rival
     
@@ -164,8 +177,10 @@ class BuildingPhaseState(GamePhaseState):
     """
     Building phase.
     
-    Players place towers or upgrade existing ones.
-    This happens before enemies spawn but after path is set.
+    In multiplayer: Players place towers or upgrade existing ones on their OWN map
+    to defend against the rival's incoming enemies.
+    
+    This happens before enemies spawn but after the attack path is set.
     """
     
     @property

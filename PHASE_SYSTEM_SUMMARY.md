@@ -51,33 +51,42 @@ This implementation adds a complete Game Loop & Phase System to PathWars using t
 - Clear separation of phase-specific behavior
 - Each phase defines allowed actions and transitions
 - Prevents invalid operations (e.g., placing towers during path modification)
+- **Combat phase allows tower building/upgrading** (per GDD requirements)
 
 ### 2. Control Point Constraints
 
+**Important**: In multiplayer, players place control points on the **RIVAL's map** to design the attack path for their enemies. This is asymmetric: you edit the rival's incoming enemy path, while defending your own map with towers.
+
 #### Preparation Phase (Round 1)
-- Exactly 2 initial points required
+- Exactly 2 initial points required **on the rival's map**
 - Start point must be on left border (x=0)
 - End point must be on right border (x=grid_width-1)
 - Points can be moved freely during this phase
 
 #### Regular Rounds (2+)
-- Maximum 1 point modification per round
+- Maximum 1 point modification per round **on the rival's map**
 - Can add OR remove, not both
 - Points from previous rounds are locked (cannot move)
 - Only points from current round can be modified
 
 ### 3. Phase Flow
+
+**Multiplayer Asymmetric Model:**
+- **PATH_MODIFICATION phase**: Players edit control points on the **rival's map** to design the path their enemies will follow
+- **BUILDING phase**: Players place towers on their **own map** to defend against the rival's enemies
+- **COMBAT phase**: Enemies follow the paths, towers attack. Players can **continue building/upgrading towers** during combat
+
 ```
 PREPARATION (Round 1 only)
-    ↓
+    ↓ (Place 2 initial points on RIVAL's map borders)
 BUILDING
-    ↓
+    ↓ (Build towers on YOUR OWN map)
 COMBAT
-    ↓
+    ↓ (Enemies attack, towers defend. Can still build/upgrade towers)
 ROUND_END
     ↓
 PATH_MODIFICATION (Round 2+)
-    ↓
+    ↓ (Modify path on RIVAL's map, max 1 point)
 (loop back to BUILDING)
 ```
 
