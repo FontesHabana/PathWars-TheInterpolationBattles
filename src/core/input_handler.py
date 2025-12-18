@@ -206,9 +206,13 @@ class InputHandler:
         # T: Cycle tower types
         if key == pygame.K_t:
             types = list(TowerType)
-            curr_idx = types.index(self.selected_tower_type)
-            next_idx = (curr_idx + 1) % len(types)
-            self.selected_tower_type = types[next_idx]
+            if self.selected_tower_type is None:
+                # Start with first tower type
+                self.selected_tower_type = types[0]
+            else:
+                curr_idx = types.index(self.selected_tower_type)
+                next_idx = (curr_idx + 1) % len(types)
+                self.selected_tower_type = types[next_idx]
             print(f"Selected tower: {self.selected_tower_type.name}")
             
         # SPACE: Toggle Phase (Planning <-> Battle)
