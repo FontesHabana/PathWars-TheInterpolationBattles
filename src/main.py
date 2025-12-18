@@ -39,6 +39,50 @@ from multiplayer.dual_view import DualView
 CURVE_COLOR = (255, 100, 100)
 
 
+def toggle_fullscreen(current_fullscreen: bool, screen_width: int, screen_height: int, renderer) -> tuple[bool, pygame.Surface]:
+    """
+    Toggle fullscreen mode.
+    
+    Args:
+        current_fullscreen: Current fullscreen state
+        screen_width: Target screen width
+        screen_height: Target screen height
+        renderer: Renderer instance to update
+        
+    Returns:
+        Tuple of (new_fullscreen_state, new_screen)
+    """
+    new_fullscreen = not current_fullscreen
+    if new_fullscreen:
+        screen = pygame.display.set_mode((screen_width, screen_height), pygame.FULLSCREEN)
+        logger.info("Switched to fullscreen mode")
+    else:
+        screen = pygame.display.set_mode((screen_width, screen_height))
+        logger.info("Switched to windowed mode")
+    
+    # Update renderer's screen reference
+    renderer.screen = screen
+    return new_fullscreen, screen
+
+
+def reset_game_state(game_state, wave_manager, grid) -> dict:
+    """
+    Reset all game state to initial values.
+    
+    Args:
+        game_state: GameState instance to reset
+        wave_manager: WaveManager instance to reset
+        grid: Grid instance to clear
+        
+    Returns:
+        Fresh game_stats dictionary
+    """
+    game_state.reset()
+    wave_manager.reset()
+    grid.clear()
+    return {"Waves Survived": 0, "Enemies Killed": 0, "Money Earned": 0}
+
+
 def main() -> None:
     logger.info("Starting PathWars...")
     
@@ -199,15 +243,7 @@ def main() -> None:
                     break
                 elif action == 'fullscreen':
                     # Toggle fullscreen
-                    fullscreen = not fullscreen
-                    if fullscreen:
-                        screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.FULLSCREEN)
-                        logger.info("Switched to fullscreen mode")
-                    else:
-                        screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-                        logger.info("Switched to windowed mode")
-                    # Update renderer's screen reference
-                    renderer.screen = screen
+                    fullscreen, screen = toggle_fullscreen(fullscreen, SCREEN_WIDTH, SCREEN_HEIGHT, renderer)
                 elif action == 'codex':
                     # Show codex panel
                     codex_panel.show()
@@ -299,26 +335,20 @@ def main() -> None:
                 action = result_screen.handle_event(event)
                 if action == "main_menu":
                     # Return to main menu
-                    game_state.reset()
-                    wave_manager.reset()
-                    grid.clear()
+                    game_stats = reset_game_state(game_state, wave_manager, grid)
                     current_wave_number = 0
                     game_over = False
                     victory = False
-                    game_stats = {"Waves Survived": 0, "Enemies Killed": 0, "Money Earned": 0}
                     game_mode = None
                     result_screen.hide()
                     main_menu.show()
                     logger.info("Returning to main menu from result screen")
                 elif action == "restart":
                     # Reset game state
-                    game_state.reset()
-                    wave_manager.reset()
-                    grid.clear()
+                    game_stats = reset_game_state(game_state, wave_manager, grid)
                     current_wave_number = 0
                     game_over = False
                     victory = False
-                    game_stats = {"Waves Survived": 0, "Enemies Killed": 0, "Money Earned": 0}
                     result_screen.hide()
                     logger.info("Restarting game from result screen")
             
@@ -346,24 +376,18 @@ def main() -> None:
                     logger.info("Resuming game")
                 elif action == 'restart':
                     # Reset game state and restart
-                    game_state.reset()
-                    wave_manager.reset()
-                    grid.clear()
+                    game_stats = reset_game_state(game_state, wave_manager, grid)
                     current_wave_number = 0
                     game_over = False
                     victory = False
-                    game_stats = {"Waves Survived": 0, "Enemies Killed": 0, "Money Earned": 0}
                     pause_menu.hide()
                     logger.info("Restarting game")
                 elif action == 'main_menu':
                     # Return to main menu
-                    game_state.reset()
-                    wave_manager.reset()
-                    grid.clear()
+                    game_stats = reset_game_state(game_state, wave_manager, grid)
                     current_wave_number = 0
                     game_over = False
                     victory = False
-                    game_stats = {"Waves Survived": 0, "Enemies Killed": 0, "Money Earned": 0}
                     game_mode = None
                     pause_menu.hide()
                     main_menu.show()
@@ -397,15 +421,7 @@ def main() -> None:
             
             # F11 to toggle fullscreen
             if event.type == pygame.KEYDOWN and event.key == pygame.K_F11:
-                fullscreen = not fullscreen
-                if fullscreen:
-                    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.FULLSCREEN)
-                    logger.info("Switched to fullscreen mode")
-                else:
-                    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-                    logger.info("Switched to windowed mode")
-                # Update renderer's screen reference
-                renderer.screen = screen
+                fullscreen, screen = toggle_fullscreen(fullscreen, SCREEN_WIDTH, SCREEN_HEIGHT, renderer)
                 continue
             
             # ESC to open pause menu (single player only, not in main menu or result screen)

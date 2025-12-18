@@ -11,6 +11,12 @@ import pygame
 
 logger = logging.getLogger(__name__)
 
+# Layout constants for connection panel
+_PANEL_TITLE_Y = 230
+_PANEL_START_Y = 280
+_LABEL_SPACING = 40
+_INPUT_SPACING = 60
+
 
 class MainMenu:
     """
@@ -305,7 +311,7 @@ class MainMenu:
             panel_title = "Join Game"
         
         title_text = self._button_font.render(panel_title, True, (255, 200, 50))
-        title_rect = title_text.get_rect(center=(self._screen_width // 2, 230))
+        title_rect = title_text.get_rect(center=(self._screen_width // 2, _PANEL_TITLE_Y))
         surface.blit(title_text, title_rect)
         
         # Recalculate positions dynamically based on mode
@@ -314,7 +320,7 @@ class MainMenu:
         input_height = 40
         
         # Start position for inputs (after title)
-        y_offset = 280
+        y_offset = _PANEL_START_Y
         
         # IP address field (only for join)
         if self._selected_option == 'join':
@@ -322,7 +328,7 @@ class MainMenu:
             label_rect = label_text.get_rect(center=(center_x, y_offset))
             surface.blit(label_text, label_rect)
             
-            y_offset += 40
+            y_offset += _LABEL_SPACING
             
             # Update IP input rect position
             ip_rect = pygame.Rect(center_x - input_width // 2, y_offset, input_width, input_height)
@@ -338,14 +344,14 @@ class MainMenu:
             text_rect = ip_text.get_rect(midleft=(ip_rect.left + 10, ip_rect.centery))
             surface.blit(ip_text, text_rect)
             
-            y_offset += 60
+            y_offset += _INPUT_SPACING
         
         # Port field
         port_label_text = self._input_font.render("Port:", True, (200, 200, 200))
         port_label_rect = port_label_text.get_rect(center=(center_x, y_offset))
         surface.blit(port_label_text, port_label_rect)
         
-        y_offset += 40
+        y_offset += _LABEL_SPACING
         
         # Update port input rect position
         port_rect = pygame.Rect(center_x - input_width // 2, y_offset, input_width, input_height)
@@ -361,7 +367,7 @@ class MainMenu:
         text_rect = port_text.get_rect(midleft=(port_rect.left + 10, port_rect.centery))
         surface.blit(port_text, text_rect)
         
-        y_offset += 60
+        y_offset += _INPUT_SPACING
         
         # Draw confirm button - positioned after last input
         confirm_width = 200
