@@ -7,7 +7,7 @@ including costs, prerequisites, and descriptions.
 
 from enum import Enum, auto
 from dataclasses import dataclass
-from typing import List
+from typing import List, Dict
 
 
 class ResearchType(Enum):
@@ -28,7 +28,7 @@ class ResearchInfo:
 
 
 # Define research info for each type
-RESEARCH_INFO: dict[ResearchType, ResearchInfo] = {
+RESEARCH_INFO: Dict[ResearchType, ResearchInfo] = {
     ResearchType.LAGRANGE_INTERPOLATION: ResearchInfo(
         research_type=ResearchType.LAGRANGE_INTERPOLATION,
         cost=500,

@@ -71,7 +71,7 @@ class TestResearchInfo:
     def test_research_info_immutable(self):
         """Test that ResearchInfo is immutable (frozen)."""
         info = RESEARCH_INFO[ResearchType.LAGRANGE_INTERPOLATION]
-        with pytest.raises(Exception):  # FrozenInstanceError
+        with pytest.raises(AttributeError):  # dataclasses.FrozenInstanceError is a subclass of AttributeError
             info.cost = 999
 
 

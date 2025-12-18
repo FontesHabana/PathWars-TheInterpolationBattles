@@ -33,6 +33,24 @@ class ResearchManager:
     Manages research unlocks for a player.
     
     Tracks which research has been unlocked and validates new research purchases.
+    
+    Key Methods:
+        unlock(research_type, available_money): Unlock a research if prerequisites
+            and cost requirements are met.
+        is_unlocked(research_type): Check if a research is already unlocked.
+        can_unlock(research_type): Check if prerequisites are met (doesn't check cost).
+        get_available_research(): Get list of research that can be unlocked.
+        get_interpolation_methods(): Get set of unlocked interpolation method names.
+        
+    Raises:
+        AlreadyResearchedError: When trying to unlock already researched item.
+        PrerequisiteNotMetError: When prerequisites are not met.
+        InsufficientFundsError: When player cannot afford the research.
+        
+    Example:
+        >>> manager = ResearchManager("player1")
+        >>> cost = manager.unlock(ResearchType.LAGRANGE_INTERPOLATION, 1000)
+        >>> methods = manager.get_interpolation_methods()  # {'linear', 'lagrange'}
     """
     
     def __init__(self, player_id: str) -> None:
