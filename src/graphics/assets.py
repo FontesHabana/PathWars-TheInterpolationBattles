@@ -109,7 +109,7 @@ class AssetManager:
         size: Optional[Tuple[int, int]] = None
     ) -> pygame.Surface:
         """
-        Load a sprite individual with escalado opcional.
+        Load an individual sprite with optional scaling.
         
         Args:
             name: Identifier for the sprite.
@@ -187,7 +187,7 @@ class AssetManager:
     @classmethod
     def get_sprite(cls, name: str) -> Optional[pygame.Surface]:
         """
-        Obtain sprite cargado.
+        Get loaded sprite.
         
         Args:
             name: Identifier of the sprite.
@@ -200,7 +200,7 @@ class AssetManager:
     @classmethod
     def get_animation_frames(cls, name: str) -> Optional[List[pygame.Surface]]:
         """
-        Obtain lista de frames de animación.
+        Get list of animation frames.
         
         Args:
             name: Identifier of the animation.
@@ -213,7 +213,7 @@ class AssetManager:
     @classmethod
     def preload_all(cls) -> None:
         """
-        Precargar todos los assets al inicio.
+        Preload all assets at startup.
         
         Loads all assets defined in ASSET_CONFIG.
         """

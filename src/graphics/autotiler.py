@@ -26,10 +26,10 @@ class PathTileType(Enum):
     EMPTY = auto()
     STRAIGHT_H = auto()  # Horizontal
     STRAIGHT_V = auto()  # Vertical
-    CURVE_NE = auto()    # Norte-Este
-    CURVE_NW = auto()    # Norte-Oeste
-    CURVE_SE = auto()    # Sur-Este
-    CURVE_SW = auto()    # Sur-Oeste
+    CURVE_NE = auto()    # North-East
+    CURVE_NW = auto()    # North-West
+    CURVE_SE = auto()    # South-East
+    CURVE_SW = auto()    # South-West
     T_NORTH = auto()     # T hacia norte
     T_SOUTH = auto()     # T hacia sur
     T_EAST = auto()      # T hacia este

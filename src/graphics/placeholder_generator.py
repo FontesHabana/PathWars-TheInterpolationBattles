@@ -12,7 +12,7 @@ from entities.enemy import EnemyType
 
 
 class PlaceholderGenerator:
-    """Generates sprites placeholder when faltan assets."""
+    """Generates sprite placeholders when assets are missing."""
     
     # Color palette for placeholders
     TOWER_COLORS = {
@@ -33,7 +33,7 @@ class PlaceholderGenerator:
         size: Tuple[int, int] = (64, 64)
     ) -> pygame.Surface:
         """
-        Create a placeholder for torre con forma y color distintivo.
+        Create a placeholder for tower with distinctive shape and color.
         
         Args:
             tower_type: The type of tower.
@@ -110,7 +110,7 @@ class PlaceholderGenerator:
         size: Tuple[int, int] = (32, 32)
     ) -> pygame.Surface:
         """
-        Create a placeholder for enemigo.
+        Create a placeholder for enemy.
         
         Args:
             enemy_type: The type of enemy.
@@ -155,7 +155,7 @@ class PlaceholderGenerator:
         size: Tuple[int, int] = (32, 32)
     ) -> pygame.Surface:
         """
-        Create a placeholder para tile.
+        Create a placeholder for tile.
         
         Args:
             tile_type: The type of tile (e.g., "path_h", "path_v").
