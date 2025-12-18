@@ -66,6 +66,91 @@ This document tracks the progress and future phases of "PathWars: The Interpolat
 - [x] `PlayerRole` enum for HOST/CLIENT distinction.
 - [x] Asymmetric curve editing model implemented.
 
+## 15. Strategy Pattern for Interpolation ✅
+**Objetivo:** Implementar el patrón Strategy para los métodos de interpolación.
+
+- [x] Interfaz `InterpolationStrategy` con método `interpolate()`.
+- [x] Implementaciones concretas:
+    - [x] `LinearStrategy` (siempre disponible)
+    - [x] `LagrangeStrategy` (requiere investigación)
+    - [x] `SplineStrategy` (requiere investigación)
+- [x] `InterpolationRegistry` para gestionar estrategias disponibles.
+- [x] Integración con `ResearchManager` para desbloqueo de métodos.
+- [x] Tests unitarios de estrategias de interpolación.
+
+## 16. Sistema de Investigación (I+D) ✅
+**Objetivo:** Permitir a los jugadores desbloquear métodos avanzados de interpolación.
+
+- [x] Clase `ResearchManager` con gestión de investigaciones desbloqueadas.
+- [x] Enum `ResearchType` con investigaciones disponibles:
+    - [x] `LAGRANGE_INTERPOLATION`
+    - [x] `SPLINE_INTERPOLATION`
+    - [x] `TANGENT_CONTROL`
+- [x] Validación de prerequisitos y costos.
+- [x] `ResearchCommand` para sincronización de red.
+- [x] Tests unitarios del sistema de investigación.
+
+## 17. Sistema de Mercenarios ✅
+**Objetivo:** Permitir enviar enemigos extra al rival durante la fase ofensiva.
+
+- [x] Clase base `BaseMercenary` extendiendo `Enemy`.
+- [x] `MercenaryFactory` (Factory Pattern) para crear mercenarios.
+- [x] Tipos de mercenarios implementados:
+    - [x] `ReinforcedStudent` (+50% HP)
+    - [x] `SpeedyVariableX` (+100% velocidad, -30% HP)
+    - [x] `TankConstantPi` (+200% HP, -50% velocidad)
+- [x] `SendMercenaryCommand` para sincronización de red.
+- [x] Tests unitarios del sistema de mercenarios.
+
+## 18. Lobby y Configuración de Partida ✅
+**Objetivo:** Permitir a los jugadores configurar la partida antes de comenzar.
+
+- [x] Menú principal con opciones para crear/unirse a partida.
+- [x] Clase `MatchConfig` con parámetros configurables.
+- [x] Sistema de configuración del lobby implementado.
+- [x] Tests de configuración de partida.
+
+## 19. GameServer Command Execution ✅
+**Objetivo:** Implementar ejecución de comandos en el servidor.
+
+- [x] GameServer puede recibir y procesar comandos.
+- [x] Validación básica de comandos implementada.
+- [x] Queue de comandos con timestamp para sincronización.
+- [x] Tests de ejecución de comandos en servidor.
+
+## 20. Game Loop & Phase System ✅
+**Objetivo:** Implementar el sistema de fases del juego usando el patrón State.
+
+### 20.1. Phase State Pattern ✅
+- [x] Interfaz `GamePhaseState` con métodos del patrón State:
+    - [x] `enter()` y `exit()` para transiciones
+    - [x] Métodos de validación de acciones por fase
+    - [x] `get_allowed_transitions()` para validar transiciones
+- [x] Estados concretos implementados:
+    - [x] `PreparationPhaseState` - Colocación de 2 puntos iniciales
+    - [x] `PathModificationPhaseState` - Modificación de camino (1 punto max)
+    - [x] `BuildingPhaseState` - Colocación de torres
+    - [x] `CombatPhaseState` - Ejecución de oleada
+    - [x] `RoundEndPhaseState` - Transición entre rondas
+
+### 20.2. Phase Manager ✅
+- [x] Clase `PhaseManager` para orquestar el loop de juego.
+- [x] Gestión de transiciones de fase con validación.
+- [x] Tracking de número de ronda (1-N, configurable).
+- [x] Enforcement de reglas de puntos de control:
+    - [x] 2 puntos iniciales en fase de preparación
+    - [x] Max 1 punto de modificación por ronda después
+    - [x] Puntos de rondas anteriores bloqueados (no movibles)
+    - [x] Validación de bordes para puntos iniciales
+
+### 20.3. Unit Tests ✅
+- [x] Tests de estados de fase (permissions y transiciones).
+- [x] Tests de PhaseManager (transiciones, constraints).
+- [x] Tests de límite de puntos en preparación (2 puntos).
+- [x] Tests de límite de modificación por ronda (1 punto).
+- [x] Tests de validación de bordes para puntos iniciales.
+- [x] Tests de tracking de rondas y finalización de partida.
+
 ---
 
 # 🚧 UPCOMING PHASES
@@ -74,51 +159,34 @@ La siguiente hoja de ruta prioriza la **Arquitectura Multijugador** y la **Calid
 
 ---
 
-## 15. Lobby y Configuración de Partida (PARTIALLY COMPLETE)
-**Objetivo:** Permitir a los jugadores configurar la partida antes de comenzar.
+## 21. Lobby UI Enhancement (FUTURE)
+**Objetivo:** Mejorar la interfaz de lobby con más opciones de configuración.
 
-### 15.1. Menú Principal ✅
-- [x] Crear pantalla de menú con opciones:
-    - [x] "Crear Partida" (Host)
-    - [x] "Unirse a Partida" (Client)
-    - [ ] "Configuración"
-    - [x] "Salir"
-- [x] Campos de entrada para IP y puerto.
-- [x] Manejo de estados de conexión.
+### 21.1. Pantalla de lobby con parámetros configurables
+- [ ] Número de Oleadas (3, 5, 7, 10)
+- [ ] Dificultad (Fácil, Normal, Difícil)
+- [ ] Velocidad de Juego (1x, 1.5x, 2x)
+- [ ] Tamaño del Mapa (15x15, 20x20, 25x25)
+- [ ] Dinero Inicial
 
-### 15.2. Lobby de Configuración
-- [ ] Pantalla de lobby con parámetros configurables:
-    - [ ] Número de Oleadas (3, 5, 7, 10)
-    - [ ] Dificultad (Fácil, Normal, Difícil)
-    - [ ] Velocidad de Juego (1x, 1.5x, 2x)
-    - [ ] Tamaño del Mapa (15x15, 20x20, 25x25)
-    - [ ] Dinero Inicial
-- [ ] Indicador de "Listo" para cada jugador.
-- [ ] Botón "Iniciar Partida" (solo Host, habilitado cuando ambos están listos).
-
-### 15.3. Handshake de Configuración
+### 21.2. Handshake de Configuración
 - [ ] El servidor envía `MatchConfigCommand` al cliente al conectarse.
 - [ ] El cliente valida y confirma la configuración.
 - [ ] Sincronización de configuración antes de iniciar.
 
-### 15.4. Unit Tests
-- [x] Tests de MainMenu UI (parcialmente completados).
-- [ ] Tests de validación de parámetros de configuración.
-- [ ] Tests de handshake de red.
-
 ---
 
-## 16. Motor de Pantalla Dividida y Input Contextual (PARTIALLY COMPLETE)
+## 22. Motor de Pantalla Dividida y Input Contextual (FUTURE)
 **Objetivo:** Renderizar dos mapas simultáneamente y gestionar input según el contexto.
 
-### 16.1. Sistema de Doble Viewport ✅
+### 22.1. Sistema de Doble Viewport ✅
 - [x] Crear clase `DualView` (anteriormente `SplitScreenRenderer`):
     - [x] Viewport Izquierdo: Mapa propio (Defensa).
     - [x] Viewport Derecho: Mapa rival (Ofensa).
 - [x] Conversión de coordenadas de pantalla a grid.
 - [x] Dibujado de línea divisoria y etiquetas.
 
-### 16.2. InputHandler Contextual
+### 22.2. InputHandler Contextual
 - [x] Detectar en qué viewport está el cursor/clic.
 - [ ] Contexto de Input según la fase:
     - [ ] `OffensePlanning`: Solo se puede editar el mapa rival (viewport derecho).
@@ -126,175 +194,20 @@ La siguiente hoja de ruta prioriza la **Arquitectura Multijugador** y la **Calid
     - [ ] `Battle`: Solo observación (input deshabilitado excepto cámara).
 - [ ] Validación de acciones según el estado del juego.
 
-### 16.3. Indicadores Visuales
+### 22.3. Indicadores Visuales
 - [ ] Borde resaltado en el viewport activo según la fase.
 - [ ] Cursor diferente según el modo (editar camino vs colocar torre).
 - [ ] Overlay con instrucciones ("Edita el camino del rival" / "Coloca tus torres").
 
-### 16.4. Unit Tests
+### 22.4. Unit Tests
 - [x] Tests de DualView (viewport dimensions, coordinate conversion).
 - [ ] Tests de validación de input contextual.
 
 ---
 
-## 17. Lógica de Fases Estricta (State Pattern)
-**Objetivo:** Implementar una máquina de estados robusta para el flujo de juego.
-
-### 17.1. Diseño de Estados
-- [ ] Interfaz `GamePhaseState` con métodos:
-    - [ ] `enter(game_state)`: Al entrar en la fase.
-    - [ ] `update(game_state, dt)`: Actualización por frame.
-    - [ ] `handle_input(game_state, event)`: Manejo de input.
-    - [ ] `exit(game_state)`: Al salir de la fase.
-    - [ ] `can_transition_to(next_phase)`: Validación de transición.
-
-### 17.2. Implementar Estados Concretos
-- [ ] `LobbyState`: Configuración de partida.
-- [ ] `OffensePlanningState`: Edición del camino rival.
-- [ ] `DefensePlanningState`: Colocación de torres propias.
-- [ ] `BattleState`: Ejecución de la oleada en tiempo real.
-- [ ] `GameOverState`: Fin de partida.
-
-### 17.3. Transiciones de Estado
-- [ ] Diagrama de transiciones:
-    ```
-    Lobby → OffensePlanning → DefensePlanning → Battle → OffensePlanning (next wave) → ... → GameOver
-    ```
-- [ ] Validación de transiciones (no se puede saltar fases).
-- [ ] Sincronización de transiciones entre cliente y servidor.
-
-### 17.4. Lógica de Puntos Bloqueados (Inmutabilidad)
-- [ ] Al finalizar `OffensePlanningState`, marcar puntos de control como `locked`.
-- [ ] En la siguiente oleada, solo permitir añadir nuevos puntos o modificar los no bloqueados.
-- [ ] Visualización de puntos bloqueados (color diferente, icono de candado).
-
-### 17.5. Temporizador de Fase
-- [ ] Cada fase tiene un tiempo límite opcional.
-- [ ] Countdown visual en la UI.
-- [ ] Auto-transición al expirar el tiempo.
-
-### 17.6. Unit Tests
-- [ ] Tests de transiciones válidas e inválidas.
-- [ ] Tests de lógica de bloqueo de puntos.
-- [ ] Tests de temporizador de fase.
-
----
-
-## 18. Expansión Económica (Mercenarios e I+D)
-**Objetivo:** Implementar las mecánicas económicas avanzadas del GDD.
-
-### 18.1. Sistema de Mercenarios
-- [ ] Crear `MercenaryFactory` (Factory Pattern):
-    - [ ] `create_mercenary(type, player_id)`: Devuelve instancia de enemigo.
-- [ ] Tipos de Mercenarios:
-    - [ ] `ReinforcedStudent`: +50% HP.
-    - [ ] `SpeedyVariableX`: +100% velocidad, -30% HP.
-    - [ ] `TankConstantPi`: +200% HP, -50% velocidad.
-- [ ] UI: Panel de mercenarios con botones de compra.
-- [ ] Comando de red: `SendMercenaryCommand(type, quantity, target_player)`.
-- [ ] Validación de dinero suficiente.
-
-### 18.2. Sistema de Investigación (I+D)
-- [ ] Crear `ResearchManager`:
-    - [ ] `unlock_research(player_id, research_type)`: Desbloquea método.
-    - [ ] `is_unlocked(player_id, research_type)`: Consulta si está desbloqueado.
-- [ ] Investigaciones disponibles:
-    - [ ] `LAGRANGE_INTERPOLATION`: 500$.
-    - [ ] `SPLINE_INTERPOLATION`: 1000$.
-    - [ ] `TANGENT_CONTROL`: 750$.
-- [ ] UI: Panel de I+D con árbol de tecnologías.
-- [ ] Comando de red: `ResearchCommand(research_type)`.
-- [ ] Persistencia durante la partida (una vez desbloqueado, siempre disponible).
-
-### 18.3. Strategy Pattern para Interpolación
-- [ ] Interfaz `InterpolationStrategy`:
-    - [ ] `interpolate(control_points, resolution)`: Devuelve lista de puntos.
-- [ ] Implementaciones:
-    - [ ] `LinearInterpolation` (siempre disponible).
-    - [ ] `LagrangeInterpolation` (requiere investigación).
-    - [ ] `SplineInterpolation` (requiere investigación).
-- [ ] Selector dinámico en `Route`:
-    - [ ] `set_interpolation_method(method)`: Solo si está desbloqueado.
-    - [ ] Validación con `ResearchManager`.
-
-### 18.4. Unit Tests
-- [ ] Tests de creación de mercenarios.
-- [ ] Tests de validación de costos.
-- [ ] Tests de desbloqueo de investigaciones.
-- [ ] Tests de estrategias de interpolación.
-
----
-
-## 19. Sistema Visual (Sprites y Autotiling)
-**Objetivo:** Mejorar la presentación visual del juego con assets profesionales.
-
-### 19.1. AssetManager Avanzado
-- [ ] Crear `AssetManager` singleton:
-    - [ ] Carga asíncrona de sprites.
-    - [ ] Cache de assets en memoria.
-    - [ ] Gestión de spritesheets.
-- [ ] Organización de assets:
-    ```
-    assets/
-      sprites/
-        towers/
-          dean_idle.png
-          dean_attack.png
-          calculus_idle.png
-          ...
-        enemies/
-          student_walk.png
-          variable_x_walk.png
-          ...
-        projectiles/
-          chalk.png
-          explosion.png
-        tiles/
-          path_straight_h.png
-          path_straight_v.png
-          path_curve_tl.png
-          ...
-    ```
-
-### 19.2. Sistema de Autotiling para el Camino
-- [ ] Crear `PathTileSelector`:
-    - [ ] `select_tile(grid_pos, neighbors)`: Devuelve sprite correcto según vecinos.
-- [ ] Lógica de conexión de tiles:
-    - [ ] Analizar 8 vecinos (N, S, E, W, NE, NW, SE, SW).
-    - [ ] Determinar tipo de tile (recto, curva, intersección).
-- [ ] Tiles disponibles:
-    - [ ] Recto Horizontal / Vertical.
-    - [ ] Curva 90° (4 rotaciones).
-    - [ ] Intersección T (4 rotaciones).
-    - [ ] Intersección Cruz.
-- [ ] Actualización dinámica al modificar puntos de control.
-
-### 19.3. Animaciones de Sprites
-- [ ] Crear `SpriteAnimator`:
-    - [ ] Gestión de frames de animación.
-    - [ ] Control de velocidad de animación (FPS).
-- [ ] Aplicar a:
-    - [ ] Enemigos: Caminar, morir.
-    - [ ] Torres: Idle, atacar.
-    - [ ] Proyectiles: Rotación según dirección.
-
-### 19.4. Partículas y Efectos
-- [ ] Sistema básico de partículas para:
-    - [ ] Explosiones (Prof. Física).
-    - [ ] Impactos de proyectiles.
-    - [ ] Muerte de enemigos (símbolos matemáticos flotantes).
-
-### 19.5. Unit Tests
-- [ ] Tests de carga de assets.
-- [ ] Tests de selección de tiles.
-- [ ] Tests de animaciones.
-
----
-
 # 📋 CURRENT FOCUS
-- **Fase 15: Lobby y Configuración de Partida** - Completar funcionalidad de lobby.
-- **Fase 16: Input Contextual** - Finalizar manejo de input según fase de juego.
-- **Fase 17: State Pattern** - Implementar máquina de estados completa.
+- **Phase 20: Game Loop & Phase System** - ✅ COMPLETED
+- **Next: Integration with GameState and UI** - Connect phase system with game loop.
 
 ---
 
