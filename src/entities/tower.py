@@ -5,7 +5,6 @@ This module defines the Tower class and tower types that defend against
 enemies by attacking them as they pass.
 """
 
-import uuid
 from enum import Enum, auto
 from typing import Dict, List, Optional
 
@@ -126,7 +125,6 @@ class Tower(Entity):
         """
         super().__init__(position, EntityType.TOWER)
 
-        self._id: str = str(uuid.uuid4())
         self._tower_type = tower_type
         self._level: TowerLevel = TowerLevel.MASTERY
         stats = self._TOWER_STATS[tower_type]
@@ -171,11 +169,6 @@ class Tower(Entity):
     def level(self) -> TowerLevel:
         """Get the current upgrade level."""
         return self._level
-
-    @property
-    def id(self) -> str:
-        """Get the unique identifier of this tower."""
-        return self._id
 
     @property
     def upgrade_cost(self) -> int:

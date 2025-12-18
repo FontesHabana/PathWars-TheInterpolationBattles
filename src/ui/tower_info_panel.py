@@ -9,7 +9,6 @@ from typing import Callable, Optional
 
 from entities.tower import Tower, TowerLevel
 from ui.components import Button, Panel, Label
-from graphics.assets import AssetManager
 
 
 class TowerInfoPanel:
