@@ -65,14 +65,15 @@ class MainMenu:
             'host': pygame.Rect(center_x - button_width // 2, start_y, button_width, button_height),
             'join': pygame.Rect(center_x - button_width // 2, start_y + button_spacing, button_width, button_height),
             'single': pygame.Rect(center_x - button_width // 2, start_y + button_spacing * 2, button_width, button_height),
-            'quit': pygame.Rect(center_x - button_width // 2, start_y + button_spacing * 3, button_width, button_height),
+            'codex': pygame.Rect(center_x - button_width // 2, start_y + button_spacing * 3, button_width, button_height),
+            'quit': pygame.Rect(center_x - button_width // 2, start_y + button_spacing * 4, button_width, button_height),
         }
         
         # Input field rects
         input_width = 250
         input_height = 40
         input_x = center_x - input_width // 2
-        input_y = start_y + button_spacing * 4 + 20
+        input_y = start_y + button_spacing * 5 + 20
         
         self._input_rects = {
             'ip': pygame.Rect(input_x, input_y, input_width, input_height),
@@ -272,6 +273,7 @@ class MainMenu:
             'host': "Host Game",
             'join': "Join Game",
             'single': "Single Player",
+            'codex': "Codex",
             'quit': "Quit",
         }
         
