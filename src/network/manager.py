@@ -154,7 +154,7 @@ class NetworkManager:
             except Exception as e:
                 logger.error(f"Error in connection callback: {e}")
 
-    def start_host(self, port: int, host: str = "0.0.0.0") -> bool:  # noqa: S104
+    def start_host(self, port: int, host: str = "127.0.0.1") -> bool:  # noqa: S104
         """
         Start hosting a game server on the specified port.
 

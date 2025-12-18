@@ -39,8 +39,8 @@ class Enemy(Entity):
 
     # Default stats by enemy type
     _ENEMY_STATS = {
-        EnemyType.STUDENT: {"health": 100, "speed": 1.0},
-        EnemyType.VARIABLE_X: {"health": 50, "speed": 2.0},
+        EnemyType.STUDENT: {"health": 100, "speed": 4.0},
+        EnemyType.VARIABLE_X: {"health": 50, "speed": 8.0},
     }
 
     def __init__(
