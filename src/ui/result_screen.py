@@ -76,7 +76,7 @@ class ResultScreen:
         )
 
         self._quit_button = Button(
-            "Quit",
+            "Main Menu",
             pygame.Rect(
                 start_x + button_width + button_spacing,
                 button_y,
