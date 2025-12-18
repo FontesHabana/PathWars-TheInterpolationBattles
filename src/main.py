@@ -285,8 +285,19 @@ def main() -> None:
                     running = False
                     break
                 action = result_screen.handle_event(event)
-                if action == "quit":
-                    running = False
+                if action == "main_menu":
+                    # Return to main menu
+                    game_state.reset()
+                    wave_manager.reset()
+                    grid.clear()
+                    current_wave_number = 0
+                    game_over = False
+                    victory = False
+                    game_stats = {"Waves Survived": 0, "Enemies Killed": 0, "Money Earned": 0}
+                    game_mode = None
+                    result_screen.hide()
+                    main_menu.show()
+                    logger.info("Returning to main menu from result screen")
                 elif action == "restart":
                     # Reset game state
                     game_state.reset()
@@ -297,6 +308,7 @@ def main() -> None:
                     victory = False
                     game_stats = {"Waves Survived": 0, "Enemies Killed": 0, "Money Earned": 0}
                     result_screen.hide()
+                    logger.info("Restarting game from result screen")
             
             # Draw result screen
             renderer.render(game_state, combat_manager)

@@ -76,7 +76,7 @@ class ResultScreen:
         )
 
         self._quit_button = Button(
-            "Quit",
+            "Main Menu",
             pygame.Rect(
                 start_x + button_width + button_spacing,
                 button_y,
@@ -94,8 +94,8 @@ class ResultScreen:
         self._action = "restart"
 
     def _on_quit(self) -> None:
-        """Callback when quit button is clicked."""
-        self._action = "quit"
+        """Callback when main menu button is clicked."""
+        self._action = "main_menu"
 
     @property
     def visible(self) -> bool:
@@ -152,7 +152,7 @@ class ResultScreen:
 
         Returns:
             'restart' if Play Again was clicked,
-            'quit' if Quit was clicked,
+            'main_menu' if Main Menu was clicked,
             None otherwise.
         """
         if not self._visible:
