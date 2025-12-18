@@ -6,6 +6,7 @@ and processes commands from connected clients.
 """
 
 import logging
+import re
 from queue import Queue
 from typing import Callable, Dict, Optional, Tuple
 
@@ -148,7 +149,6 @@ class GameServer:
             command_class_name = command_class_name[:-7]  # Remove 'Command'
         
         # Convert CamelCase to SNAKE_CASE
-        import re
         command_type = re.sub(r'(?<=[a-z])(?=[A-Z])', '_', command_class_name).upper()
         
         handler = self._command_handlers.get(command_type)

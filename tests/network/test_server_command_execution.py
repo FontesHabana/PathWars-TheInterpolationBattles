@@ -6,7 +6,7 @@ validation, state management, and broadcasting.
 """
 
 import pytest
-from unittest.mock import Mock, MagicMock, patch, call
+from unittest.mock import Mock, MagicMock, patch
 
 from network.server import GameServer
 from network.commands import (
