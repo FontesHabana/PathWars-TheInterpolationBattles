@@ -141,6 +141,15 @@ class InputHandler:
         if not self.grid.is_valid_position(grid_x, grid_y):
             return
 
+        # Check if there's already a tower at this position
+        existing_tower = self._find_tower_at(grid_x, grid_y)
+        
+        if existing_tower:
+            # Select the existing tower to show info panel
+            self.select_tower(existing_tower)
+            print(f"[Input] Selected {existing_tower.tower_type.name} tower at ({grid_x}, {grid_y})")
+            return
+
         # LOGIC: If in Planning phase and has money, try place tower
         if self.game_state.current_phase == GamePhase.PLANNING:
             self._try_place_tower(grid_x, grid_y)
