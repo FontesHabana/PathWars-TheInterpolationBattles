@@ -11,9 +11,7 @@ import os
 # Add src to path so we can import the module
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../src")))
 
-# Initialize pygame for font/surface operations
 import pygame
-pygame.init()
 
 from ui.result_screen import ResultScreen
 

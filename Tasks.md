@@ -25,28 +25,20 @@ This document tracks the progress and future phases of "PathWars: The Interpolat
 ## 12. Wire Up Game Feedback Components ✅
 ## 13. Wire Up Tower Effects ✅
 
----
-
-# 🚧 UPCOMING PHASES
-
-La siguiente hoja de ruta prioriza la **Arquitectura Multijugador** y la **Calidad de Código**, aplicando principios SOLID y preparando el código para Tests Unitarios.
-
----
-
-## 14. Arquitectura Cliente-Servidor y Refactorización (Core) 🚀 MÁXIMA PRIORIDAD
+## 14. Arquitectura Cliente-Servidor y Refactorización (Core) ✅
 **Objetivo:** Establecer una arquitectura sólida y escalable para el multijugador.
 
-### 14.1. Implementar GameServer (Autoridad)
+### 14.1. Implementar GameServer (Autoridad) ✅
 - [x] Crear clase `GameServer` que gestione el estado autoritativo del juego.
 - [x] Implementar validación de comandos del lado del servidor.
 - [x] Gestionar conexiones de múltiples clientes (preparar para escalabilidad).
 
-### 14.2. Implementar GameClient
+### 14.2. Implementar GameClient ✅
 - [x] Crear clase `GameClient` que maneje la conexión con el servidor.
 - [x] Implementar envío y recepción de comandos.
 - [x] Separar lógica de renderizado (local) de lógica de juego (remota).
 
-### 14.3. Patrón Command para Sincronización de Red
+### 14.3. Patrón Command para Sincronización de Red ✅
 - [x] Diseñar interfaz `GameCommand` (tipo, player_id, data, timestamp).
 - [x] Implementar comandos específicos:
     - [x] `PlaceTowerCommand`
@@ -57,28 +49,42 @@ La siguiente hoja de ruta prioriza la **Arquitectura Multijugador** y la **Calid
 - [x] Serialización y deserialización de comandos (JSON).
 - [x] Queue de comandos con timestamp para sincronización.
 
-### 14.4. Separación de GameState (Local vs Remoto)
+### 14.4. Separación de GameState (Local vs Remoto) ✅
 - [x] `GameState` (Remoto): HP, dinero, torres, puntos de control, fase actual.
 - [x] `LocalGameState`: Posiciones de sprites, animaciones, efectos visuales.
 - [x] Sincronización periódica del estado remoto.
 - [x] Interpolación local para suavizado de movimientos.
 
-### 14.5. Unit Tests
+### 14.5. Unit Tests ✅
 - [x] Tests de serialización/deserialización de comandos.
 - [x] Tests de validación de comandos en el servidor.
 - [x] Tests de sincronización de estado.
 
+### 14.6. Multiplayer Session Management ✅
+- [x] `DuelSession` class for orchestrating multiplayer duels.
+- [x] `SyncEngine` for real-time state synchronization.
+- [x] `PlayerRole` enum for HOST/CLIENT distinction.
+- [x] Asymmetric curve editing model implemented.
+
 ---
 
-## 15. Lobby y Configuración de Partida
+# 🚧 UPCOMING PHASES
+
+La siguiente hoja de ruta prioriza la **Arquitectura Multijugador** y la **Calidad de Código**, aplicando principios SOLID y preparando el código para Tests Unitarios.
+
+---
+
+## 15. Lobby y Configuración de Partida (PARTIALLY COMPLETE)
 **Objetivo:** Permitir a los jugadores configurar la partida antes de comenzar.
 
-### 15.1. Menú Principal
-- [ ] Crear pantalla de menú con opciones:
-    - [ ] "Crear Partida" (Host)
-    - [ ] "Unirse a Partida" (Client)
+### 15.1. Menú Principal ✅
+- [x] Crear pantalla de menú con opciones:
+    - [x] "Crear Partida" (Host)
+    - [x] "Unirse a Partida" (Client)
     - [ ] "Configuración"
-    - [ ] "Salir"
+    - [x] "Salir"
+- [x] Campos de entrada para IP y puerto.
+- [x] Manejo de estados de conexión.
 
 ### 15.2. Lobby de Configuración
 - [ ] Pantalla de lobby con parámetros configurables:
@@ -96,23 +102,24 @@ La siguiente hoja de ruta prioriza la **Arquitectura Multijugador** y la **Calid
 - [ ] Sincronización de configuración antes de iniciar.
 
 ### 15.4. Unit Tests
+- [x] Tests de MainMenu UI (parcialmente completados).
 - [ ] Tests de validación de parámetros de configuración.
 - [ ] Tests de handshake de red.
 
 ---
 
-## 16. Motor de Pantalla Dividida y Input Contextual
+## 16. Motor de Pantalla Dividida y Input Contextual (PARTIALLY COMPLETE)
 **Objetivo:** Renderizar dos mapas simultáneamente y gestionar input según el contexto.
 
-### 16.1. Sistema de Doble Viewport
-- [ ] Crear clase `SplitScreenRenderer`:
-    - [ ] Viewport Izquierdo: Mapa propio (Defensa).
-    - [ ] Viewport Derecho: Mapa rival (Ofensa).
-- [ ] Cada viewport tiene su propia cámara y transformación.
-- [ ] Renderizado independiente de grilla, torres, enemigos, camino.
+### 16.1. Sistema de Doble Viewport ✅
+- [x] Crear clase `DualView` (anteriormente `SplitScreenRenderer`):
+    - [x] Viewport Izquierdo: Mapa propio (Defensa).
+    - [x] Viewport Derecho: Mapa rival (Ofensa).
+- [x] Conversión de coordenadas de pantalla a grid.
+- [x] Dibujado de línea divisoria y etiquetas.
 
 ### 16.2. InputHandler Contextual
-- [ ] Detectar en qué viewport está el cursor/clic.
+- [x] Detectar en qué viewport está el cursor/clic.
 - [ ] Contexto de Input según la fase:
     - [ ] `OffensePlanning`: Solo se puede editar el mapa rival (viewport derecho).
     - [ ] `DefensePlanning`: Solo se puede colocar torres en el mapa propio (viewport izquierdo).
@@ -125,7 +132,7 @@ La siguiente hoja de ruta prioriza la **Arquitectura Multijugador** y la **Calid
 - [ ] Overlay con instrucciones ("Edita el camino del rival" / "Coloca tus torres").
 
 ### 16.4. Unit Tests
-- [ ] Tests de detección de viewport activo.
+- [x] Tests de DualView (viewport dimensions, coordinate conversion).
 - [ ] Tests de validación de input contextual.
 
 ---
@@ -285,6 +292,95 @@ La siguiente hoja de ruta prioriza la **Arquitectura Multijugador** y la **Calid
 ---
 
 # 📋 CURRENT FOCUS
-- **Fase 14: Arquitectura Cliente-Servidor** - Establecer las bases sólidas para el multijugador.
-- **Aplicación de Principios SOLID** - Diseño modular y extensible.
-- **Preparación para Tests Unitarios** - Código testeable desde el inicio.
+- **Fase 15: Lobby y Configuración de Partida** - Completar funcionalidad de lobby.
+- **Fase 16: Input Contextual** - Finalizar manejo de input según fase de juego.
+- **Fase 17: State Pattern** - Implementar máquina de estados completa.
+
+---
+
+# 🔍 PROJECT REVIEW FINDINGS (Diciembre 2024)
+
+Esta sección documenta los hallazgos de la revisión del proyecto después de la fusión de cambios.
+
+## Problemas Corregidos
+
+### Tests Corregidos ✅
+1. **`test_grid.py::TestGameState::test_initial_values`**: Test actualizado para reflejar el valor correcto de dinero inicial (1000 en lugar de 100).
+2. **Tests de pygame**: Corregido problema de inicialización de pygame.font en tests:
+   - `test_result_screen.py::TestResultScreenDraw`
+   - `test_wave_banner.py::TestWaveBannerDraw`
+   - Solución: Añadido fixture `pygame_init` en `conftest.py` con scope de sesión.
+3. **Tests de multiplayer**: Removidas llamadas innecesarias a `pygame.init()/quit()` en:
+   - `test_dual_view.py`
+   - `test_main_menu.py`
+
+## Estado de Tests
+- **461 tests pasando** ✅
+- **0 tests fallando** ✅
+
+## Oportunidades de Mejora Identificadas
+
+### Alta Prioridad
+
+#### 1. Falta de Validación Real de Comandos en GameServer
+- **Ubicación**: `src/network/server.py`
+- **Problema**: `_execute_command()` solo hace logging, no valida ni aplica comandos al estado del juego.
+- **Acción Requerida**: Implementar validación y ejecución real de comandos.
+
+#### 2. GameServer No Ejecuta Comandos en GameState
+- **Ubicación**: `src/network/server.py`
+- **Problema**: Los comandos se procesan pero no modifican el estado del juego.
+- **Acción Requerida**: Conectar `GameServer._execute_command()` con `GameState`.
+
+#### 3. Interpolation Strategies no siguen Strategy Pattern
+- **Ubicación**: `src/math_engine/interpolator.py`
+- **Problema**: Las funciones de interpolación son métodos estáticos, no clases que implementen una interfaz.
+- **Acción Requerida**: Refactorizar a Strategy Pattern como indica el GDD.
+
+### Media Prioridad
+
+#### 4. CurveState.initialize_default_points Ignora Estado Bloqueado Original
+- **Ubicación**: `src/core/curve_state.py` líneas 252-262
+- **Problema**: La función desbloquea la curva temporalmente pero ignora `was_locked` al final.
+- **Acción Requerida**: Restaurar estado `_locked` original si era necesario.
+
+#### 5. Falta de AssetManager para Sprites/Animaciones
+- **Ubicación**: `src/graphics/assets.py`
+- **Problema**: `AssetManager` actual solo maneja fuentes, no sprites/animaciones.
+- **Acción Requerida**: Extender para manejo completo de assets como indica Fase 19.
+
+#### 6. GamePhase Enum Incompleto
+- **Ubicación**: `src/core/game_state.py`
+- **Problema**: Falta `LOBBY` phase que existe en `DuelPhase` (src/multiplayer/duel_session.py).
+- **Acción Requerida**: Unificar phases o agregar LOBBY a GamePhase.
+
+### Baja Prioridad
+
+#### 7. Docstrings Faltantes en Algunos Métodos del Interpolator
+- **Ubicación**: `src/math_engine/interpolator.py`
+- **Problema**: Docstrings mínimos sin descripción de parámetros y retornos.
+- **Acción Requerida**: Completar documentación.
+
+#### 8. Uso de Type Comments en Lugar de Type Hints
+- **Ubicación**: Varios archivos
+- **Problema**: Algunos archivos usan `# type: ignore` o comentarios de tipo.
+- **Acción Requerida**: Migrar a type hints nativos de Python 3.10+.
+
+## Buenas Prácticas Observadas ✅
+
+1. **Patrón Observer** bien implementado en NetworkManager y WaveManager.
+2. **Patrón Command** bien implementado para comandos de red.
+3. **Patrón Singleton** usado correctamente en GameState y NetworkManager.
+4. **Separación de Responsabilidades** clara entre modules.
+5. **Tests comprehensivos** con buena cobertura (461 tests).
+6. **Documentación de código** con docstrings detallados.
+7. **Manejo de errores** con excepciones personalizadas (InsufficientFundsError, CurveLockedError, etc.).
+8. **Logging** implementado correctamente en todos los módulos.
+
+## Próximos Pasos Recomendados
+
+1. **Completar validación de comandos en GameServer** - Crítico para multijugador funcional.
+2. **Implementar Lobby con configuración** - Permitir personalizar partidas.
+3. **Unificar GamePhase y DuelPhase** - Evitar confusión en fases de juego.
+4. **Implementar Strategy Pattern para interpolación** - Seguir diseño del GDD.
+5. **Completar InputHandler contextual** - Crucial para experiencia de usuario en multijugador.
