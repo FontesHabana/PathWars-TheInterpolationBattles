@@ -19,12 +19,12 @@ class InterpolationRegistry:
     """
     
     _instance: Optional['InterpolationRegistry'] = None
-    _strategies: Dict[str, InterpolationStrategy] = {}
     
     def __new__(cls) -> 'InterpolationRegistry':
         """Ensure only one instance of the registry exists."""
         if cls._instance is None:
             cls._instance = super().__new__(cls)
+            cls._instance._strategies = {}
             cls._instance._initialize_strategies()
         return cls._instance
     

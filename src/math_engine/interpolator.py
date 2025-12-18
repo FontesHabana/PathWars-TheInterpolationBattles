@@ -37,7 +37,7 @@ class Interpolator:
         
         # Calculate cumulative distance to space points evenly along the path
         dist = np.cumsum(np.sqrt(np.ediff1d(x, to_begin=0)**2 + np.ediff1d(y, to_begin=0)**2))
-        dist = dist / dist[-1] # Normalize 0 to 1
+        dist = dist / dist[-1]  # Normalize 0 to 1
         
         interp_dist = np.linspace(0, 1, num_points)
         
@@ -69,7 +69,8 @@ class Interpolator:
         
         # Chordal distance parameterization
         dist = np.cumsum(np.sqrt(np.ediff1d(x, to_begin=0)**2 + np.ediff1d(y, to_begin=0)**2))
-        if dist[-1] == 0: return points
+        if dist[-1] == 0:
+            return points
         
         poly_x = lagrange(dist, x)
         poly_y = lagrange(dist, y)
@@ -104,7 +105,8 @@ class Interpolator:
         
         # Chordal distance parameterization
         dist = np.cumsum(np.sqrt(np.ediff1d(x, to_begin=0)**2 + np.ediff1d(y, to_begin=0)**2))
-        if dist[-1] == 0: return points
+        if dist[-1] == 0:
+            return points
         
         cs_x = CubicSpline(dist, x)
         cs_y = CubicSpline(dist, y)
