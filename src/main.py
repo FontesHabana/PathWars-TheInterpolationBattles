@@ -46,6 +46,7 @@ def main() -> None:
     pygame.init()
     SCREEN_WIDTH = 1280
     SCREEN_HEIGHT = 720
+    fullscreen = False
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     pygame.display.set_caption("PathWars: The Interpolation Duel")
     clock = pygame.time.Clock()
@@ -196,6 +197,17 @@ def main() -> None:
                 if action == 'quit':
                     running = False
                     break
+                elif action == 'fullscreen':
+                    # Toggle fullscreen
+                    fullscreen = not fullscreen
+                    if fullscreen:
+                        screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.FULLSCREEN)
+                        logger.info("Switched to fullscreen mode")
+                    else:
+                        screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+                        logger.info("Switched to windowed mode")
+                    # Update renderer's screen reference
+                    renderer.screen = screen
                 elif action == 'codex':
                     # Show codex panel
                     codex_panel.show()
@@ -382,6 +394,19 @@ def main() -> None:
             if event.type == pygame.QUIT:
                 running = False
                 break
+            
+            # F11 to toggle fullscreen
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_F11:
+                fullscreen = not fullscreen
+                if fullscreen:
+                    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.FULLSCREEN)
+                    logger.info("Switched to fullscreen mode")
+                else:
+                    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+                    logger.info("Switched to windowed mode")
+                # Update renderer's screen reference
+                renderer.screen = screen
+                continue
             
             # ESC to open pause menu (single player only, not in main menu or result screen)
             if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:

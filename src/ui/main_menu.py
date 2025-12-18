@@ -66,7 +66,8 @@ class MainMenu:
             'join': pygame.Rect(center_x - button_width // 2, start_y + button_spacing, button_width, button_height),
             'single': pygame.Rect(center_x - button_width // 2, start_y + button_spacing * 2, button_width, button_height),
             'codex': pygame.Rect(center_x - button_width // 2, start_y + button_spacing * 3, button_width, button_height),
-            'quit': pygame.Rect(center_x - button_width // 2, start_y + button_spacing * 4, button_width, button_height),
+            'fullscreen': pygame.Rect(center_x - button_width // 2, start_y + button_spacing * 4, button_width, button_height),
+            'quit': pygame.Rect(center_x - button_width // 2, start_y + button_spacing * 5, button_width, button_height),
         }
         
         # Input field rects
@@ -274,6 +275,7 @@ class MainMenu:
             'join': "Join Game",
             'single': "Single Player",
             'codex': "Codex",
+            'fullscreen': "Toggle Fullscreen (F11)",
             'quit': "Quit",
         }
         
@@ -285,8 +287,12 @@ class MainMenu:
             pygame.draw.rect(surface, color, button_rect)
             pygame.draw.rect(surface, (150, 150, 150), button_rect, 2)
             
-            # Button text
-            text = self._button_font.render(button_labels[button_name], True, (255, 255, 255))
+            # Button text - use smaller font for fullscreen button to fit text
+            if button_name == 'fullscreen':
+                font = pygame.font.Font(None, 36)
+            else:
+                font = self._button_font
+            text = font.render(button_labels[button_name], True, (255, 255, 255))
             text_rect = text.get_rect(center=button_rect.center)
             surface.blit(text, text_rect)
     
