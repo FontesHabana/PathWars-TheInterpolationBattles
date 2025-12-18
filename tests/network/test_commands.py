@@ -432,9 +432,10 @@ class TestGameServer:
         """Test processing commands with empty queue."""
         server = GameServer()
         
-        processed = server.process_commands()
+        success, fail = server.process_commands()
         
-        assert processed == 0
+        assert success == 0
+        assert fail == 0
     
     def test_process_commands_with_commands(self):
         """Test processing commands in the queue."""
@@ -447,9 +448,10 @@ class TestGameServer:
         server.command_queue.put(cmd1)
         server.command_queue.put(cmd2)
         
-        processed = server.process_commands()
+        success, fail = server.process_commands()
         
-        assert processed == 2
+        # Commands should be processed (may fail without game state)
+        assert success + fail == 2
         assert server.command_queue.empty()
     
     def test_stop(self):
@@ -588,10 +590,10 @@ class TestServerClientIntegration:
         time.sleep(0.2)
         
         # Process commands on server
-        processed = server.process_commands()
+        success, fail = server.process_commands()
         
         # Should have received and processed the command
-        assert processed >= 1
+        assert success + fail >= 1
         
         # Clean up
         client.disconnect()
