@@ -145,7 +145,7 @@ class TestGameState:
         """Test initial game state values."""
         state = GameState()
         
-        assert state.money == 100
+        assert state.money == 1000
         assert state.lives == 10
         assert state.current_phase == GamePhase.PLANNING
     

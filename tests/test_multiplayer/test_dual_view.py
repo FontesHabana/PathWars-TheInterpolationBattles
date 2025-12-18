@@ -17,14 +17,9 @@ class TestDualView:
     
     def setup_method(self):
         """Set up test fixtures."""
-        pygame.init()
         self.screen_width = 1280
         self.screen_height = 720
         self.dual_view = DualView(self.screen_width, self.screen_height)
-    
-    def teardown_method(self):
-        """Clean up after tests."""
-        pygame.quit()
     
     def test_viewport_dimensions(self):
         """Test that viewports have correct dimensions."""

@@ -17,14 +17,9 @@ class TestMainMenu:
     
     def setup_method(self):
         """Set up test fixtures."""
-        pygame.init()
         self.screen_width = 1280
         self.screen_height = 720
         self.menu = MainMenu(self.screen_width, self.screen_height)
-    
-    def teardown_method(self):
-        """Clean up after tests."""
-        pygame.quit()
     
     def test_initial_state(self):
         """Test initial state of MainMenu."""
