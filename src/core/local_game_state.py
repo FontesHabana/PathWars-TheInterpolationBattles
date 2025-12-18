@@ -21,7 +21,7 @@ class Particle:
         vx: X velocity of the particle.
         vy: Y velocity of the particle.
         lifetime: Remaining lifetime in seconds.
-        max_lifetime: Maximum lifetime in seconds.
+        max_lifetime: Maximum lifetime in seconds (used for calculating alpha/fade).
         color: RGB color tuple.
         size: Size of the particle.
     """
@@ -33,6 +33,18 @@ class Particle:
     max_lifetime: float = 1.0
     color: Tuple[int, int, int] = (255, 255, 255)
     size: float = 2.0
+    
+    @property
+    def alpha(self) -> float:
+        """
+        Calculate alpha value based on remaining lifetime.
+        
+        Returns:
+            Alpha value between 0.0 and 1.0 based on remaining lifetime.
+        """
+        if self.max_lifetime <= 0:
+            return 1.0
+        return max(0.0, min(1.0, self.lifetime / self.max_lifetime))
 
 
 @dataclass

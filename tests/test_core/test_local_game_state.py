@@ -12,7 +12,9 @@ import sys
 import os
 import pytest
 
-# Insert src at the beginning of sys.path to ensure it's found before tests/core
+# Insert src at the beginning of sys.path to ensure 'core' module from src/core
+# is found before tests/test_core when importing. This is necessary because the
+# test directory name contains 'core' which could conflict with the src/core module.
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../src")))
 
 from core.game_state import GameState, GamePhase
