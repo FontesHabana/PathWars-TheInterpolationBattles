@@ -165,6 +165,17 @@ def main() -> None:
     combat_manager.on_enemy_killed(on_enemy_killed)
     combat_manager.on_base_damaged(on_base_damaged)
 
+    def reset_game_state() -> None:
+        """Reset all game state for restart or return to menu."""
+        nonlocal current_wave_number, game_over, victory, game_stats
+        game_state.reset()
+        wave_manager.reset()
+        grid.clear()
+        current_wave_number = 0
+        game_over = False
+        victory = False
+        game_stats = {"Waves Survived": 0, "Enemies Killed": 0, "Money Earned": 0}
+
     # 3. Main Loop
     running = True
     while running:
@@ -291,24 +302,12 @@ def main() -> None:
                 if action == "quit":
                     # Return to main menu instead of exiting application
                     result_screen.hide()
-                    game_state.reset()
-                    wave_manager.reset()
-                    grid.clear()
-                    current_wave_number = 0
-                    game_over = False
-                    victory = False
-                    game_stats = {"Waves Survived": 0, "Enemies Killed": 0, "Money Earned": 0}
+                    reset_game_state()
                     game_mode = None
                     main_menu.show()
                 elif action == "restart":
                     # Reset game state
-                    game_state.reset()
-                    wave_manager.reset()
-                    grid.clear()
-                    current_wave_number = 0
-                    game_over = False
-                    victory = False
-                    game_stats = {"Waves Survived": 0, "Enemies Killed": 0, "Money Earned": 0}
+                    reset_game_state()
                     result_screen.hide()
             
             # Draw result screen
@@ -329,23 +328,11 @@ def main() -> None:
                     elif event.key == pygame.K_r:
                         # Restart game
                         is_paused = False
-                        game_state.reset()
-                        wave_manager.reset()
-                        grid.clear()
-                        current_wave_number = 0
-                        game_over = False
-                        victory = False
-                        game_stats = {"Waves Survived": 0, "Enemies Killed": 0, "Money Earned": 0}
+                        reset_game_state()
                     elif event.key == pygame.K_m or event.key == pygame.K_q:
                         # Return to main menu
                         is_paused = False
-                        game_state.reset()
-                        wave_manager.reset()
-                        grid.clear()
-                        current_wave_number = 0
-                        game_over = False
-                        victory = False
-                        game_stats = {"Waves Survived": 0, "Enemies Killed": 0, "Money Earned": 0}
+                        reset_game_state()
                         game_mode = None
                         main_menu.show()
                 if event.type == pygame.MOUSEBUTTONDOWN:
@@ -364,22 +351,10 @@ def main() -> None:
                         is_paused = False
                     elif restart_rect.collidepoint(mouse_pos):
                         is_paused = False
-                        game_state.reset()
-                        wave_manager.reset()
-                        grid.clear()
-                        current_wave_number = 0
-                        game_over = False
-                        victory = False
-                        game_stats = {"Waves Survived": 0, "Enemies Killed": 0, "Money Earned": 0}
+                        reset_game_state()
                     elif menu_rect.collidepoint(mouse_pos):
                         is_paused = False
-                        game_state.reset()
-                        wave_manager.reset()
-                        grid.clear()
-                        current_wave_number = 0
-                        game_over = False
-                        victory = False
-                        game_stats = {"Waves Survived": 0, "Enemies Killed": 0, "Money Earned": 0}
+                        reset_game_state()
                         game_mode = None
                         main_menu.show()
             
