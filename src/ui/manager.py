@@ -24,8 +24,8 @@ class UIManager:
         self.game_state = game_state
         self.panels: List[Panel] = []
 
-        # Track currently selected tower type for placement
-        self.selected_tower_type: TowerType = TowerType.DEAN
+        # Track currently selected tower type for placement (None = no tower selected)
+        self.selected_tower_type: Optional[TowerType] = None
 
         # Tower info panel for displaying selected tower details
         self.tower_info_panel = TowerInfoPanel(
@@ -89,9 +89,19 @@ class UIManager:
         self.panels.append(panel)
 
     def _select_tower(self, tower_type: TowerType):
-        """Callback when a tower button is clicked."""
-        self.selected_tower_type = tower_type
-        print(f"[UI] Selected tower: {tower_type.name}")
+        """
+        Callback when a tower button is clicked.
+        
+        Implements toggle behavior: clicking the same tower type deselects it.
+        """
+        if self.selected_tower_type == tower_type:
+            # Toggle off - deselect
+            self.selected_tower_type = None
+            print(f"[UI] Deselected tower")
+        else:
+            # Select new tower type
+            self.selected_tower_type = tower_type
+            print(f"[UI] Selected tower: {tower_type.name}")
 
     def _toggle_phase(self):
         """Toggle between Planning and Battle phases."""
@@ -177,6 +187,11 @@ class UIManager:
 
         # Draw selected tower indicator
         font = pygame.font.SysFont("Arial", 18)
-        text = f"Placing: {self.selected_tower_type.name}"
-        surf = font.render(text, True, (200, 200, 200))
+        if self.selected_tower_type is None:
+            text = "No tower selected"
+            color = (150, 150, 150)
+        else:
+            text = f"Placing: {self.selected_tower_type.name}"
+            color = (200, 200, 200)
+        surf = font.render(text, True, color)
         screen.blit(surf, (20, self.screen_height - 30))
