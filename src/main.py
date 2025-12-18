@@ -13,7 +13,7 @@ from typing import List, Tuple, Optional
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-from core.game_state import GameState, GamePhase
+from core.game_state import GameState, GamePhase, InsufficientFundsError
 from core.grid import Grid
 from core.input_handler import InputHandler
 from core.combat_manager import CombatManager
@@ -30,9 +30,12 @@ from ui.wave_banner import WaveBanner
 from ui.result_screen import ResultScreen
 from ui.main_menu import MainMenu
 from ui.codex_panel import CodexPanel
+from ui.mercenary_panel import MercenaryPanel
 from core.curve_state import CurveState
 from multiplayer.duel_session import DuelSession, DuelPhase
 from multiplayer.dual_view import DualView
+from entities.mercenaries.mercenary_types import MercenaryType
+from entities.mercenaries.mercenary_factory import MercenaryFactory
 
 # Constants
 CURVE_COLOR = (255, 100, 100)
@@ -102,6 +105,41 @@ def main() -> None:
     # Initialize UI Feedback Components
     wave_banner = WaveBanner(SCREEN_WIDTH, SCREEN_HEIGHT)
     result_screen = ResultScreen(SCREEN_WIDTH, SCREEN_HEIGHT)
+    
+    # Initialize Mercenary Panel (for multiplayer)
+    def on_send_mercenary(mercenary_type: MercenaryType) -> bool:
+        """
+        Callback when player tries to send a mercenary.
+        
+        Args:
+            mercenary_type: Type of mercenary to send.
+            
+        Returns:
+            True if mercenary was sent successfully, False otherwise.
+        """
+        try:
+            cost = MercenaryFactory.get_cost(mercenary_type)
+            game_state.deduct_money(cost)
+            
+            # TODO: Send mercenary via DuelSession when in multiplayer
+            # For now, just log the action
+            logger.info(f"Sent {mercenary_type.name} mercenary for ${cost}")
+            
+            # In a full implementation, this would be:
+            # if duel_session:
+            #     mercenary = MercenaryFactory.create_mercenary(
+            #         mercenary_type,
+            #         owner_player_id=duel_session.local_player_id,
+            #         target_player_id=duel_session.opponent_player_id
+            #     )
+            #     duel_session.send_mercenary_command(mercenary)
+            
+            return True
+        except InsufficientFundsError:
+            logger.warning(f"Cannot afford {mercenary_type.name} mercenary")
+            return False
+    
+    mercenary_panel = MercenaryPanel(SCREEN_WIDTH, SCREEN_HEIGHT, on_send_mercenary)
     
     # Initialize Effect Manager
     effect_manager = EffectManager()
@@ -272,6 +310,12 @@ def main() -> None:
             elif duel_session.phase == DuelPhase.PLANNING:
                 # Hide main menu if we just entered planning phase
                 main_menu.hide()
+                # Show mercenary panel in multiplayer
+                mercenary_panel.show()
+        
+        # Hide mercenary panel in single player mode
+        if game_mode == 'single' and mercenary_panel.visible:
+            mercenary_panel.hide()
         
         # Handle result screen events first (if visible)
         if result_screen.visible:
@@ -307,6 +351,10 @@ def main() -> None:
                 
             # UI handles event first
             if ui_manager.handle_event(event):
+                continue
+            
+            # Mercenary panel handles event (if visible)
+            if mercenary_panel.handle_event(event):
                 continue
 
             # During PLANNING phase, let curve editor handle events
@@ -386,6 +434,9 @@ def main() -> None:
 
         # Draw UI
         ui_manager.draw(screen)
+        
+        # Draw mercenary panel (if visible)
+        mercenary_panel.draw(screen)
         
         # Draw wave banner on top
         wave_banner.draw(screen)
