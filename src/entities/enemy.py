@@ -12,6 +12,7 @@ from entities.base import Entity, EntityState, EntityType, Vector2
 
 if TYPE_CHECKING:
     from core.effects import StatusEffect
+    from graphics.animation import AnimationState
 
 
 class EnemyType(Enum):
@@ -64,6 +65,13 @@ class Enemy(Entity):
 
         self._enemy_type = enemy_type
         stats = self._ENEMY_STATS[enemy_type]
+        
+        # Set sprite name based on enemy type
+        self._sprite_name = self._get_sprite_name_for_type(enemy_type)
+        
+        # Animation state (for future animation system integration)
+        from graphics.animation import AnimationState
+        self._animation_state: AnimationState = AnimationState.WALK
 
         self._max_health: int = health if health is not None else stats["health"]
         self._health: int = self._max_health
@@ -78,6 +86,32 @@ class Enemy(Entity):
     def enemy_type(self) -> EnemyType:
         """Get the type of enemy."""
         return self._enemy_type
+    
+    @property
+    def sprite_name(self) -> str:
+        """Get the sprite name for this enemy."""
+        return self._sprite_name
+    
+    def get_sprite_name(self) -> str:
+        """Get the sprite name for this enemy (method version)."""
+        return self._sprite_name
+    
+    @staticmethod
+    def _get_sprite_name_for_type(enemy_type: EnemyType) -> str:
+        """
+        Get the sprite name for a given enemy type.
+        
+        Args:
+            enemy_type: The type of enemy.
+            
+        Returns:
+            The sprite name string.
+        """
+        sprite_map = {
+            EnemyType.STUDENT: "student_walk",
+            EnemyType.VARIABLE_X: "variable_x_walk",
+        }
+        return sprite_map.get(enemy_type, "student_walk")
 
     @property
     def health(self) -> int:

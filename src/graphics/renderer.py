@@ -133,7 +133,37 @@ class Renderer:
 
     def _draw_tower(self, tower, pos: Tuple[int, int]):
         """Helper to draw a tower."""
-        color_key = "tower_dean" # Default
+        # Try to get sprite
+        sprite = AssetManager.get_sprite(tower.sprite_name)
+        
+        if sprite:
+            self._draw_tower_sprite(tower, pos, sprite)
+        else:
+            # Fallback to placeholder drawing
+            self._draw_tower_placeholder(tower, pos)
+    
+    def _draw_tower_sprite(
+        self,
+        tower,
+        pos: Tuple[int, int],
+        sprite: pygame.Surface
+    ):
+        """Draw a tower using its sprite."""
+        # Offset slightly up so it stands ON the tile
+        draw_pos = (pos[0], pos[1] - self.TOWER_OFFSET_Y)
+        
+        # Center the sprite
+        sprite_rect = sprite.get_rect()
+        sprite_rect.center = draw_pos
+        
+        self.screen.blit(sprite, sprite_rect)
+        
+        # Draw base
+        pygame.draw.circle(self.screen, (100, 100, 100), pos, 10, 1)
+    
+    def _draw_tower_placeholder(self, tower, pos: Tuple[int, int]):
+        """Draw a tower using placeholder graphics (fallback)."""
+        color_key = "tower_dean"  # Default
         if tower.tower_type == TowerType.CALCULUS: color_key = "tower_calculus"
         elif tower.tower_type == TowerType.PHYSICS: color_key = "tower_physics"
         elif tower.tower_type == TowerType.STATISTICS: color_key = "tower_statistics"
@@ -150,6 +180,42 @@ class Renderer:
 
     def _draw_enemy(self, enemy, pos: Tuple[int, int]):
         """Helper to draw an enemy."""
+        # Try to get sprite
+        sprite = AssetManager.get_sprite(enemy.sprite_name)
+        
+        if sprite:
+            self._draw_enemy_sprite(enemy, pos, sprite)
+        else:
+            # Fallback to placeholder drawing
+            self._draw_enemy_placeholder(enemy, pos)
+    
+    def _draw_enemy_sprite(
+        self,
+        enemy,
+        pos: Tuple[int, int],
+        sprite: pygame.Surface
+    ):
+        """Draw an enemy using its sprite."""
+        # Offset slightly up
+        draw_pos = (pos[0], pos[1] - self.ENEMY_OFFSET_Y)
+        
+        # Center the sprite
+        sprite_rect = sprite.get_rect()
+        sprite_rect.center = draw_pos
+        
+        self.screen.blit(sprite, sprite_rect)
+        
+        # Health bar
+        hp_pct = enemy.health / enemy.max_health
+        bar_width = 20
+        bar_height = 4
+        bar_pos = (pos[0] - bar_width // 2, pos[1] - 30)
+        
+        pygame.draw.rect(self.screen, (255, 0, 0), (*bar_pos, bar_width, bar_height))
+        pygame.draw.rect(self.screen, (0, 255, 0), (*bar_pos, int(bar_width * hp_pct), bar_height))
+    
+    def _draw_enemy_placeholder(self, enemy, pos: Tuple[int, int]):
+        """Draw an enemy using placeholder graphics (fallback)."""
         color_key = "enemy_student"
         if enemy.enemy_type == EnemyType.VARIABLE_X: color_key = "enemy_variable_x"
         

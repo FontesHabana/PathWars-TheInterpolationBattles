@@ -128,6 +128,9 @@ class Tower(Entity):
         self._tower_type = tower_type
         self._level: TowerLevel = TowerLevel.MASTERY
         stats = self._TOWER_STATS[tower_type]
+        
+        # Set sprite name based on tower type
+        self._sprite_name = self._get_sprite_name_for_type(tower_type)
 
         # Store base stats (before any upgrades)
         self._base_damage: int = damage if damage is not None else stats["damage"]
@@ -164,6 +167,34 @@ class Tower(Entity):
     def tower_type(self) -> TowerType:
         """Get the type of tower."""
         return self._tower_type
+    
+    @property
+    def sprite_name(self) -> str:
+        """Get the sprite name for this tower."""
+        return self._sprite_name
+    
+    def get_sprite_name(self) -> str:
+        """Get the sprite name for this tower (method version)."""
+        return self._sprite_name
+    
+    @staticmethod
+    def _get_sprite_name_for_type(tower_type: TowerType) -> str:
+        """
+        Get the sprite name for a given tower type.
+        
+        Args:
+            tower_type: The type of tower.
+            
+        Returns:
+            The sprite name string.
+        """
+        sprite_map = {
+            TowerType.DEAN: "dean_idle",
+            TowerType.CALCULUS: "calculus_idle",
+            TowerType.PHYSICS: "physics_idle",
+            TowerType.STATISTICS: "statistics_idle",
+        }
+        return sprite_map.get(tower_type, "dean_idle")
 
     @property
     def level(self) -> TowerLevel:

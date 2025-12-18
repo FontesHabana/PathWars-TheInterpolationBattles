@@ -47,6 +47,11 @@ def main() -> None:
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     pygame.display.set_caption("PathWars: The Interpolation Duel")
     clock = pygame.time.Clock()
+    
+    # Preload all assets
+    logger.info("Preloading assets...")
+    AssetManager.preload_all()
+    logger.info("Assets preloaded successfully")
 
     # 2. Initialize Main Menu
     main_menu = MainMenu(SCREEN_WIDTH, SCREEN_HEIGHT)
