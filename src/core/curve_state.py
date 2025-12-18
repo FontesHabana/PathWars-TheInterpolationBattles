@@ -10,6 +10,11 @@ from typing import List, Tuple
 from math_engine.interpolator import Interpolator
 
 
+class CurveLockedError(Exception):
+    """Raised when attempting to modify a locked curve."""
+    pass
+
+
 class CurveState:
     """
     Stores control points and interpolation method for path generation.
@@ -29,6 +34,7 @@ class CurveState:
         """Initialize the CurveState with empty control points and linear interpolation."""
         self._control_points: List[Tuple[float, float]] = []
         self._interpolation_method: str = 'linear'
+        self._locked: bool = False
 
     @property
     def control_points(self) -> List[Tuple[float, float]]:
@@ -50,6 +56,34 @@ class CurveState:
         """
         return self._interpolation_method
 
+    @property
+    def locked(self) -> bool:
+        """
+        Return whether the curve is locked.
+
+        Returns:
+            True if the curve is locked, False otherwise.
+        """
+        return self._locked
+
+    def lock(self) -> None:
+        """Lock the curve, preventing modifications to control points."""
+        self._locked = True
+
+    def unlock(self) -> None:
+        """Unlock the curve, allowing modifications to control points."""
+        self._locked = False
+
+    def _check_locked(self) -> None:
+        """
+        Check if the curve is locked and raise an exception if it is.
+
+        Raises:
+            CurveLockedError: If the curve is locked.
+        """
+        if self._locked:
+            raise CurveLockedError("Cannot modify control points while curve is locked")
+
     def add_point(self, x: float, y: float) -> bool:
         """
         Add a new control point at the specified coordinates.
@@ -62,7 +96,12 @@ class CurveState:
         
         Returns:
             True if point was added, False if X is duplicate.
+            
+        Raises:
+            CurveLockedError: If the curve is locked.
         """
+        self._check_locked()
+        
         # Prevent exact duplicate X values to maintain function property
         for px, _ in self._control_points:
             if abs(px - x) < 0.01:
@@ -75,13 +114,24 @@ class CurveState:
     def remove_point(self, index: int) -> bool:
         """
         Remove the control point at the specified index.
+        Cannot remove points if only 2 points remain (minimum requirement).
 
         Args:
             index: The index of the point to remove.
 
         Returns:
-            True if the point was removed, False if the index was invalid.
+            True if the point was removed, False if the index was invalid
+            or if only 2 points remain.
+            
+        Raises:
+            CurveLockedError: If the curve is locked.
         """
+        self._check_locked()
+        
+        # Enforce minimum of 2 points
+        if len(self._control_points) <= 2:
+            return False
+        
         if 0 <= index < len(self._control_points):
             self._control_points.pop(index)
             return True
@@ -99,7 +149,12 @@ class CurveState:
 
         Returns:
             True if the point was moved, False if the index was invalid or X duplicate.
+            
+        Raises:
+            CurveLockedError: If the curve is locked.
         """
+        self._check_locked()
+        
         if 0 <= index < len(self._control_points):
             # Check for duplicate X excluding the current point being moved
             for i, (px, _) in enumerate(self._control_points):
@@ -165,7 +220,13 @@ class CurveState:
             )
 
     def clear_points(self) -> None:
-        """Remove all control points."""
+        """
+        Remove all control points.
+        
+        Raises:
+            CurveLockedError: If the curve is locked.
+        """
+        self._check_locked()
         self._control_points.clear()
 
     def get_point_count(self) -> int:
@@ -176,3 +237,26 @@ class CurveState:
             The number of control points.
         """
         return len(self._control_points)
+
+    def initialize_default_points(self, start_x: float = 0.0, end_x: float = 19.0, y: float = 10.0) -> None:
+        """
+        Initialize the curve with default start and end points.
+        Clears any existing points, adds exactly 2 points at the specified positions,
+        and unlocks the curve for editing.
+
+        Args:
+            start_x: X coordinate of the start point (default: 0.0).
+            end_x: X coordinate of the end point (default: 19.0).
+            y: Y coordinate for both points (default: 10.0).
+        """
+        # Temporarily unlock to clear and add points
+        was_locked = self._locked
+        self._locked = False
+        
+        self._control_points.clear()
+        self._control_points.append((start_x, y))
+        self._control_points.append((end_x, y))
+        self._control_points.sort(key=lambda p: p[0])
+        
+        # Ensure curve is unlocked after initialization
+        self._locked = False
