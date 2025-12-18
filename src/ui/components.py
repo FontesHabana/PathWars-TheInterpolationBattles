@@ -49,11 +49,15 @@ class Button:
         self.hover_color = hover_color
         self.text_color = text_color
         self._hovered = False
+        self.enabled = True
 
     def handle_event(self, event: pygame.event.Event) -> bool:
         """
         Returns True if this button consumed the event.
         """
+        if not self.enabled:
+            return False
+            
         if event.type == pygame.MOUSEMOTION:
             self._hovered = self.rect.collidepoint(event.pos)
 
@@ -64,12 +68,19 @@ class Button:
         return False
 
     def draw(self, screen: pygame.Surface):
-        color = self.hover_color if self._hovered else self.bg_color
+        # Use dimmer colors if disabled
+        if not self.enabled:
+            color = self.bg_color
+            text_color = (150, 150, 150)
+        else:
+            color = self.hover_color if self._hovered else self.bg_color
+            text_color = self.text_color
+            
         pygame.draw.rect(screen, color, self.rect, border_radius=5)
         pygame.draw.rect(screen, (100, 100, 150), self.rect, width=2, border_radius=5)
 
         font = AssetManager.get_font(18)
-        text_surf = font.render(self.text, True, self.text_color)
+        text_surf = font.render(self.text, True, text_color)
         text_rect = text_surf.get_rect(center=self.rect.center)
         screen.blit(text_surf, text_rect)
 

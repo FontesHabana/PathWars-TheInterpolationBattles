@@ -11,6 +11,12 @@ import pygame
 
 logger = logging.getLogger(__name__)
 
+# Layout constants for connection panel
+_PANEL_TITLE_Y = 230
+_PANEL_START_Y = 280
+_LABEL_SPACING = 40
+_INPUT_SPACING = 60
+
 
 class MainMenu:
     """
@@ -66,7 +72,8 @@ class MainMenu:
             'join': pygame.Rect(center_x - button_width // 2, start_y + button_spacing, button_width, button_height),
             'single': pygame.Rect(center_x - button_width // 2, start_y + button_spacing * 2, button_width, button_height),
             'codex': pygame.Rect(center_x - button_width // 2, start_y + button_spacing * 3, button_width, button_height),
-            'quit': pygame.Rect(center_x - button_width // 2, start_y + button_spacing * 4, button_width, button_height),
+            'fullscreen': pygame.Rect(center_x - button_width // 2, start_y + button_spacing * 4, button_width, button_height),
+            'quit': pygame.Rect(center_x - button_width // 2, start_y + button_spacing * 5, button_width, button_height),
         }
         
         # Input field rects
@@ -274,6 +281,7 @@ class MainMenu:
             'join': "Join Game",
             'single': "Single Player",
             'codex': "Codex",
+            'fullscreen': "Toggle Fullscreen (F11)",
             'quit': "Quit",
         }
         
@@ -285,8 +293,12 @@ class MainMenu:
             pygame.draw.rect(surface, color, button_rect)
             pygame.draw.rect(surface, (150, 150, 150), button_rect, 2)
             
-            # Button text
-            text = self._button_font.render(button_labels[button_name], True, (255, 255, 255))
+            # Button text - use smaller font for fullscreen button to fit text
+            if button_name == 'fullscreen':
+                font = pygame.font.Font(None, 36)
+            else:
+                font = self._button_font
+            text = font.render(button_labels[button_name], True, (255, 255, 255))
             text_rect = text.get_rect(center=button_rect.center)
             surface.blit(text, text_rect)
     
@@ -299,19 +311,29 @@ class MainMenu:
             panel_title = "Join Game"
         
         title_text = self._button_font.render(panel_title, True, (255, 200, 50))
-        title_rect = title_text.get_rect(center=(self._screen_width // 2, 230))
+        title_rect = title_text.get_rect(center=(self._screen_width // 2, _PANEL_TITLE_Y))
         surface.blit(title_text, title_rect)
         
-        # Draw input fields
-        y_offset = 320
+        # Recalculate positions dynamically based on mode
+        center_x = self._screen_width // 2
+        input_width = 250
+        input_height = 40
+        
+        # Start position for inputs (after title)
+        y_offset = _PANEL_START_Y
         
         # IP address field (only for join)
         if self._selected_option == 'join':
             label_text = self._input_font.render("IP Address:", True, (200, 200, 200))
-            label_rect = label_text.get_rect(center=(self._screen_width // 2, y_offset))
+            label_rect = label_text.get_rect(center=(center_x, y_offset))
             surface.blit(label_text, label_rect)
             
-            ip_rect = self._input_rects['ip']
+            y_offset += _LABEL_SPACING
+            
+            # Update IP input rect position
+            ip_rect = pygame.Rect(center_x - input_width // 2, y_offset, input_width, input_height)
+            self._input_rects['ip'] = ip_rect
+            
             is_active = (self._active_input == 'ip')
             border_color = (200, 200, 255) if is_active else (150, 150, 150)
             
@@ -322,14 +344,19 @@ class MainMenu:
             text_rect = ip_text.get_rect(midleft=(ip_rect.left + 10, ip_rect.centery))
             surface.blit(ip_text, text_rect)
             
-            y_offset += 60
+            y_offset += _INPUT_SPACING
         
         # Port field
         port_label_text = self._input_font.render("Port:", True, (200, 200, 200))
-        port_label_rect = port_label_text.get_rect(center=(self._screen_width // 2, y_offset))
+        port_label_rect = port_label_text.get_rect(center=(center_x, y_offset))
         surface.blit(port_label_text, port_label_rect)
         
-        port_rect = self._input_rects['port']
+        y_offset += _LABEL_SPACING
+        
+        # Update port input rect position
+        port_rect = pygame.Rect(center_x - input_width // 2, y_offset, input_width, input_height)
+        self._input_rects['port'] = port_rect
+        
         is_active = (self._active_input == 'port')
         border_color = (200, 200, 255) if is_active else (150, 150, 150)
         
@@ -340,7 +367,17 @@ class MainMenu:
         text_rect = port_text.get_rect(midleft=(port_rect.left + 10, port_rect.centery))
         surface.blit(port_text, text_rect)
         
-        # Draw confirm button
+        y_offset += _INPUT_SPACING
+        
+        # Draw confirm button - positioned after last input
+        confirm_width = 200
+        confirm_height = 50
+        confirm_x = center_x - confirm_width // 2
+        confirm_y = y_offset
+        
+        # Update confirm button position
+        self._confirm_button = pygame.Rect(confirm_x, confirm_y, confirm_width, confirm_height)
+        
         is_hovered = (self._hovered_button == 'confirm')
         button_color = (100, 200, 100) if is_hovered else (60, 120, 60)
         
@@ -353,5 +390,5 @@ class MainMenu:
         
         # Draw ESC hint
         hint_text = self._input_font.render("Press ESC to go back", True, (150, 150, 150))
-        hint_rect = hint_text.get_rect(center=(self._screen_width // 2, self._screen_height - 100))
+        hint_rect = hint_text.get_rect(center=(center_x, self._screen_height - 80))
         surface.blit(hint_text, hint_rect)
