@@ -213,7 +213,6 @@ class CodexPanel:
     
     def _navigate_prev(self) -> None:
         """Navigate to the previous card."""
-        max_index = self._get_max_index()
         if self._current_index > 0:
             self._current_index -= 1
     
