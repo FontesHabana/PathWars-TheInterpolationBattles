@@ -13,7 +13,7 @@ from typing import List, Tuple, Optional
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-from core.game_state import GameState, GamePhase
+from core.game_state import GameState, GamePhase, InsufficientFundsError
 from core.grid import Grid
 from core.input_handler import InputHandler
 from core.combat_manager import CombatManager
@@ -30,9 +30,15 @@ from ui.wave_banner import WaveBanner
 from ui.result_screen import ResultScreen
 from ui.main_menu import MainMenu
 from ui.codex_panel import CodexPanel
+from ui.mercenary_panel import MercenaryPanel
+from ui.research_panel import ResearchPanel
 from core.curve_state import CurveState
+from core.research.research_manager import ResearchManager
+from core.research.research_type import ResearchType
 from multiplayer.duel_session import DuelSession, DuelPhase
 from multiplayer.dual_view import DualView
+from entities.mercenaries.mercenary_types import MercenaryType
+from entities.mercenaries.mercenary_factory import MercenaryFactory
 
 # Constants
 CURVE_COLOR = (255, 100, 100)
@@ -72,6 +78,9 @@ def main() -> None:
     ui_manager = UIManager(SCREEN_WIDTH, SCREEN_HEIGHT, game_state)
     input_handler = InputHandler(game_state, grid, renderer)
     
+    # Initialize Research Manager
+    research_manager = ResearchManager(player_id="player1")
+    
     # Initialize Wave Manager
     wave_manager = WaveManager()
     current_wave_number = 0
@@ -80,7 +89,7 @@ def main() -> None:
     curve_state = CurveState()
     # Initial state: Only 2 points (Start and End) as per rules
     curve_state.initialize_default_points(start_x=0.0, end_x=19.0, y=10.0)
-    curve_editor = CurveEditorUI(SCREEN_WIDTH, SCREEN_HEIGHT, renderer, curve_state)
+    curve_editor = CurveEditorUI(SCREEN_WIDTH, SCREEN_HEIGHT, renderer, curve_state, game_state, research_manager)
 
     # Initialize Ready Manager
     ready_manager = ReadyManager(player_count=1, ready_timeout=30.0)
@@ -102,6 +111,57 @@ def main() -> None:
     # Initialize UI Feedback Components
     wave_banner = WaveBanner(SCREEN_WIDTH, SCREEN_HEIGHT)
     result_screen = ResultScreen(SCREEN_WIDTH, SCREEN_HEIGHT)
+    
+    # Initialize Mercenary Panel (for multiplayer)
+    def on_send_mercenary(mercenary_type: MercenaryType) -> bool:
+        """
+        Callback when player tries to send a mercenary.
+        
+        Args:
+            mercenary_type: Type of mercenary to send.
+            
+        Returns:
+            True if mercenary was sent successfully, False otherwise.
+        """
+        try:
+            cost = MercenaryFactory.get_cost(mercenary_type)
+            game_state.deduct_money(cost)
+            
+            # TODO: Integrate with DuelSession for actual multiplayer sending
+            logger.info(f"Sent {mercenary_type.name} mercenary for ${cost}")
+            
+            return True
+        except InsufficientFundsError:
+            logger.warning(f"Cannot afford {mercenary_type.name} mercenary")
+            return False
+    
+    mercenary_panel = MercenaryPanel(SCREEN_WIDTH, SCREEN_HEIGHT, on_send_mercenary)
+    
+    # Initialize Research Panel
+    def on_unlock_research(research_type: ResearchType) -> bool:
+        """
+        Callback when player tries to unlock research.
+        
+        Args:
+            research_type: Type of research to unlock.
+            
+        Returns:
+            True if research was unlocked successfully, False otherwise.
+        """
+        try:
+            cost = research_manager.unlock(research_type, game_state.money)
+            game_state.deduct_money(cost)
+            logger.info(f"Unlocked {research_type.name} for ${cost}")
+            
+            # Update curve editor with new available methods
+            curve_editor.update_available_methods(research_manager.get_interpolation_methods())
+            
+            return True
+        except Exception as e:
+            logger.warning(f"Cannot unlock {research_type.name}: {e}")
+            return False
+    
+    research_panel = ResearchPanel(SCREEN_WIDTH, SCREEN_HEIGHT, research_manager, on_unlock_research)
     
     # Initialize Effect Manager
     effect_manager = EffectManager()
@@ -272,6 +332,12 @@ def main() -> None:
             elif duel_session.phase == DuelPhase.PLANNING:
                 # Hide main menu if we just entered planning phase
                 main_menu.hide()
+                # Show mercenary panel in multiplayer
+                mercenary_panel.show()
+        
+        # Hide mercenary panel in single player mode
+        if game_mode == 'single' and mercenary_panel.visible:
+            mercenary_panel.hide()
         
         # Handle result screen events first (if visible)
         if result_screen.visible:
@@ -308,11 +374,23 @@ def main() -> None:
             # UI handles event first
             if ui_manager.handle_event(event):
                 continue
+            
+            # Research panel handles event (if visible)
+            if research_panel.handle_event(event):
+                continue
+            
+            # Mercenary panel handles event (if visible)
+            if mercenary_panel.handle_event(event):
+                continue
 
             # During PLANNING phase, let curve editor handle events
             if game_state.current_phase == GamePhase.PLANNING:
                 if curve_editor.handle_event(event):
                     continue
+                
+            # Handle research panel toggle (R key)
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_r:
+                research_panel.toggle()
                 
             # Game world handles event
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
@@ -386,6 +464,12 @@ def main() -> None:
 
         # Draw UI
         ui_manager.draw(screen)
+        
+        # Draw mercenary panel (if visible)
+        mercenary_panel.draw(screen)
+        
+        # Draw research panel (if visible)
+        research_panel.draw(screen)
         
         # Draw wave banner on top
         wave_banner.draw(screen)
