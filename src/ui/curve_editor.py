@@ -379,9 +379,4 @@ class CurveEditorUI:
             self._dragging_index = None
             self._mode = EditorMode.NORMAL
 
-        Returns:
-            The current EditorMode (NORMAL or ADD_POINT).
-        """
-        return self._mode
-
 
