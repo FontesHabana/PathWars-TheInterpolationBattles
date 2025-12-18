@@ -31,6 +31,9 @@ class UIManager:
 
         # Track mouse position for tower preview
         self._mouse_grid_pos: Optional[Tuple[int, int]] = None
+        
+        # Track phase button for dynamic updates
+        self._phase_button: Optional[Button] = None
 
         # Tower info panel for displaying selected tower details
         self.tower_info_panel = TowerInfoPanel(
@@ -88,17 +91,38 @@ class UIManager:
 
         panel = Panel(pygame.Rect(panel_x, panel_y, panel_width, panel_height))
 
-        # Phase button
-        btn = Button(
+        # Phase button - store reference for dynamic updates
+        self._phase_button = Button(
             "Start Battle",
             pygame.Rect(panel_x + 10, panel_y + 30, 180, 35),
             self._toggle_phase,
             bg_color=(50, 100, 50),
             hover_color=(80, 150, 80),
         )
-        panel.add(btn)
+        panel.add(self._phase_button)
 
         self.panels.append(panel)
+    
+    def _update_phase_button(self):
+        """Update phase button based on current game phase."""
+        if self._phase_button is None:
+            return
+        
+        if self.game_state.current_phase == GamePhase.PLANNING:
+            # During PLANNING: Show "Start Battle" button
+            self._phase_button.text = "Start Battle"
+            self._phase_button.bg_color = (50, 100, 50)
+            self._phase_button.hover_color = (80, 150, 80)
+            self._phase_button.enabled = True
+        elif self.game_state.current_phase == GamePhase.BATTLE:
+            # During BATTLE: Show "Battle in Progress..." and disable
+            self._phase_button.text = "Battle in Progress..."
+            self._phase_button.bg_color = (80, 80, 80)
+            self._phase_button.hover_color = (80, 80, 80)
+            self._phase_button.enabled = False
+        else:
+            # Other phases: disable button
+            self._phase_button.enabled = False
 
     def _select_tower(self, tower_type: TowerType):
         """
@@ -320,6 +344,9 @@ class UIManager:
 
     def draw(self, screen: pygame.Surface):
         """Draw all UI panels."""
+        # Update phase button state before drawing
+        self._update_phase_button()
+        
         for panel in self.panels:
             panel.draw(screen)
 
