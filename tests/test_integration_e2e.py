@@ -17,8 +17,12 @@ from core.game_state import GameState, GamePhase, InsufficientFundsError
 from core.grid import Grid
 from core.combat_manager import CombatManager
 from core.wave_manager import WaveManager
-from core.curve_state import CurveState
-from core.research.research_manager import ResearchManager
+from core.curve_state import CurveState, CurveLockedError
+from core.research.research_manager import (
+    ResearchManager, 
+    PrerequisiteNotMetError,
+    InsufficientFundsError as ResearchInsufficientFundsError
+)
 from core.research.research_type import ResearchType
 from entities.tower import Tower, TowerType, TowerLevel
 from entities.enemy import Enemy, EnemyType
@@ -153,7 +157,6 @@ class TestResearchSystem:
     def test_research_prerequisites(self):
         """Test that Spline requires Lagrange."""
         # Try to unlock Spline without Lagrange
-        from core.research.research_manager import PrerequisiteNotMetError
         with pytest.raises(PrerequisiteNotMetError):
             self.research_manager.unlock(
                 ResearchType.SPLINE_INTERPOLATION,
@@ -178,12 +181,10 @@ class TestResearchSystem:
     
     def test_insufficient_funds_for_research(self):
         """Test that research fails without enough money."""
-        from core.research.research_manager import InsufficientFundsError
-        
         # Reduce money to insufficient amount
         self.game_state.deduct_money(900)  # Leave only $100
         
-        with pytest.raises(InsufficientFundsError):
+        with pytest.raises(ResearchInsufficientFundsError):
             self.research_manager.unlock(
                 ResearchType.LAGRANGE_INTERPOLATION,
                 self.game_state.money
@@ -377,7 +378,6 @@ class TestCurveEditor:
         assert curve_state.locked
         
         # Should not be able to add points when locked
-        from core.curve_state import CurveLockedError
         with pytest.raises(CurveLockedError):
             curve_state.add_point(5.0, 5.0)
         

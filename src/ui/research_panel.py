@@ -149,7 +149,7 @@ class ResearchPanel:
     def _rebuild_panel(self) -> None:
         """Rebuild the panel with updated research states."""
         self.panel.children.clear()
-        self._build_panel()
+        self.panel = self._build_panel()
 
     @property
     def visible(self) -> bool:

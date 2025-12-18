@@ -127,18 +127,8 @@ def main() -> None:
             cost = MercenaryFactory.get_cost(mercenary_type)
             game_state.deduct_money(cost)
             
-            # TODO: Send mercenary via DuelSession when in multiplayer
-            # For now, just log the action
+            # TODO: Integrate with DuelSession for actual multiplayer sending
             logger.info(f"Sent {mercenary_type.name} mercenary for ${cost}")
-            
-            # In a full implementation, this would be:
-            # if duel_session:
-            #     mercenary = MercenaryFactory.create_mercenary(
-            #         mercenary_type,
-            #         owner_player_id=duel_session.local_player_id,
-            #         target_player_id=duel_session.opponent_player_id
-            #     )
-            #     duel_session.send_mercenary_command(mercenary)
             
             return True
         except InsufficientFundsError:
