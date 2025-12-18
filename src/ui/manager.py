@@ -46,6 +46,9 @@ class UIManager:
             on_send_mercenary=self._on_send_mercenary
         )
 
+        # Phase panel reference for visibility control
+        self._phase_panel: Optional[Panel] = None
+
         self._build_shop_panel()
         self._build_phase_panel()
 
@@ -86,7 +89,7 @@ class UIManager:
         panel_x = self.screen_width - panel_width - 20
         panel_y = self.screen_height - panel_height - 20
 
-        panel = Panel(pygame.Rect(panel_x, panel_y, panel_width, panel_height))
+        self._phase_panel = Panel(pygame.Rect(panel_x, panel_y, panel_width, panel_height))
 
         # Phase button
         btn = Button(
@@ -96,9 +99,9 @@ class UIManager:
             bg_color=(50, 100, 50),
             hover_color=(80, 150, 80),
         )
-        panel.add(btn)
+        self._phase_panel.add(btn)
 
-        self.panels.append(panel)
+        self.panels.append(self._phase_panel)
 
     def _select_tower(self, tower_type: TowerType):
         """
@@ -321,6 +324,9 @@ class UIManager:
     def draw(self, screen: pygame.Surface):
         """Draw all UI panels."""
         for panel in self.panels:
+            # Hide phase panel during battle phase
+            if panel == self._phase_panel and self.game_state.current_phase != GamePhase.PLANNING:
+                continue
             panel.draw(screen)
 
         # Draw mercenary panel

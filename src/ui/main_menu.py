@@ -69,19 +69,24 @@ class MainMenu:
             'quit': pygame.Rect(center_x - button_width // 2, start_y + button_spacing * 4, button_width, button_height),
         }
         
-        # Input field rects
+        # Input field rects - positioned in center of screen for Host/Join panel
         input_width = 250
         input_height = 40
         input_x = center_x - input_width // 2
-        input_y = start_y + button_spacing * 5 + 20
+        # Position inputs starting from center of screen, not below buttons
+        input_y = 350
         
         self._input_rects = {
             'ip': pygame.Rect(input_x, input_y, input_width, input_height),
-            'port': pygame.Rect(input_x, input_y + 60, input_width, input_height),
+            'port': pygame.Rect(input_x, input_y + 80, input_width, input_height),
         }
         
-        # Button for confirming host/join
-        self._confirm_button = pygame.Rect(center_x - 100, input_y + 120, 200, 50)
+        # Button for confirming host/join - positioned with margin from bottom
+        confirm_y = min(input_y + 180, screen_height - 200)
+        self._confirm_button = pygame.Rect(center_x - 100, confirm_y, 200, 50)
+        
+        # Back button for Host/Join panel
+        self._back_button = pygame.Rect(center_x - 100, confirm_y + 70, 200, 50)
     
     @property
     def visible(self) -> bool:
@@ -130,13 +135,17 @@ class MainMenu:
         """Handle mouse motion for hover effects."""
         self._hovered_button = None
         
-        for button_name, button_rect in self._buttons.items():
-            if button_rect.collidepoint(pos):
-                self._hovered_button = button_name
-                break
-        
-        if self._confirm_button.collidepoint(pos) and self._selected_option:
-            self._hovered_button = 'confirm'
+        if self._selected_option is None:
+            for button_name, button_rect in self._buttons.items():
+                if button_rect.collidepoint(pos):
+                    self._hovered_button = button_name
+                    break
+        else:
+            # Check confirm and back buttons in connection panel
+            if self._confirm_button.collidepoint(pos):
+                self._hovered_button = 'confirm'
+            elif self._back_button.collidepoint(pos):
+                self._hovered_button = 'back'
     
     def _handle_mouse_click(self, pos: Tuple[int, int]) -> Optional[str]:
         """Handle mouse click events."""
@@ -161,6 +170,13 @@ class MainMenu:
             # Check confirm button
             if self._confirm_button.collidepoint(pos):
                 return 'confirm'
+            
+            # Check back button
+            if self._back_button.collidepoint(pos):
+                self._selected_option = None
+                self._active_input = None
+                self._status_message = ""
+                return None
         
         return None
     
@@ -274,7 +290,7 @@ class MainMenu:
             'join': "Join Game",
             'single': "Single Player",
             'codex': "Codex",
-            'quit': "Quit",
+            'quit': "Exit Game",
         }
         
         for button_name, button_rect in self._buttons.items():
@@ -302,16 +318,14 @@ class MainMenu:
         title_rect = title_text.get_rect(center=(self._screen_width // 2, 230))
         surface.blit(title_text, title_rect)
         
-        # Draw input fields
-        y_offset = 320
-        
+        # Draw input fields - use fixed positions from _input_rects
         # IP address field (only for join)
         if self._selected_option == 'join':
+            ip_rect = self._input_rects['ip']
             label_text = self._input_font.render("IP Address:", True, (200, 200, 200))
-            label_rect = label_text.get_rect(center=(self._screen_width // 2, y_offset))
+            label_rect = label_text.get_rect(center=(self._screen_width // 2, ip_rect.top - 25))
             surface.blit(label_text, label_rect)
             
-            ip_rect = self._input_rects['ip']
             is_active = (self._active_input == 'ip')
             border_color = (200, 200, 255) if is_active else (150, 150, 150)
             
@@ -321,15 +335,13 @@ class MainMenu:
             ip_text = self._input_font.render(self._ip_input, True, (255, 255, 255))
             text_rect = ip_text.get_rect(midleft=(ip_rect.left + 10, ip_rect.centery))
             surface.blit(ip_text, text_rect)
-            
-            y_offset += 60
         
         # Port field
+        port_rect = self._input_rects['port']
         port_label_text = self._input_font.render("Port:", True, (200, 200, 200))
-        port_label_rect = port_label_text.get_rect(center=(self._screen_width // 2, y_offset))
+        port_label_rect = port_label_text.get_rect(center=(self._screen_width // 2, port_rect.top - 25))
         surface.blit(port_label_text, port_label_rect)
         
-        port_rect = self._input_rects['port']
         is_active = (self._active_input == 'port')
         border_color = (200, 200, 255) if is_active else (150, 150, 150)
         
@@ -347,11 +359,18 @@ class MainMenu:
         pygame.draw.rect(surface, button_color, self._confirm_button)
         pygame.draw.rect(surface, (150, 150, 150), self._confirm_button, 2)
         
-        confirm_text = self._button_font.render("Connect", True, (255, 255, 255))
+        confirm_label = "Start Hosting" if self._selected_option == 'host' else "Connect"
+        confirm_text = self._button_font.render(confirm_label, True, (255, 255, 255))
         confirm_rect = confirm_text.get_rect(center=self._confirm_button.center)
         surface.blit(confirm_text, confirm_rect)
         
-        # Draw ESC hint
-        hint_text = self._input_font.render("Press ESC to go back", True, (150, 150, 150))
-        hint_rect = hint_text.get_rect(center=(self._screen_width // 2, self._screen_height - 100))
-        surface.blit(hint_text, hint_rect)
+        # Draw back button
+        is_hovered = (self._hovered_button == 'back')
+        back_color = (100, 100, 200) if is_hovered else (60, 60, 120)
+        
+        pygame.draw.rect(surface, back_color, self._back_button)
+        pygame.draw.rect(surface, (150, 150, 150), self._back_button, 2)
+        
+        back_text = self._button_font.render("Back", True, (255, 255, 255))
+        back_rect = back_text.get_rect(center=self._back_button.center)
+        surface.blit(back_text, back_rect)
