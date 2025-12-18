@@ -9,8 +9,10 @@ from typing import List, Optional
 
 from ui.components import Button, Panel, Label
 from ui.tower_info_panel import TowerInfoPanel
+from ui.mercenary_panel import MercenaryPanel
 from core.game_state import GameState, GamePhase
 from entities.tower import Tower, TowerType
+from entities.mercenaries.mercenary_types import MercenaryType
 
 
 class UIManager:
@@ -32,6 +34,13 @@ class UIManager:
             screen_width,
             screen_height,
             on_upgrade_callback=self._on_tower_upgrade
+        )
+
+        # Mercenary panel for multiplayer
+        self.mercenary_panel = MercenaryPanel(
+            screen_width,
+            screen_height,
+            on_send_mercenary=self._on_send_mercenary
         )
 
         self._build_shop_panel()
@@ -155,6 +164,48 @@ class UIManager:
         
         return success
 
+    def _on_send_mercenary(self, mercenary_type: MercenaryType) -> bool:
+        """
+        Handle mercenary sending request.
+        
+        Args:
+            mercenary_type: The type of mercenary to send.
+            
+        Returns:
+            True if mercenary was sent successfully, False otherwise.
+        """
+        # Get cost
+        cost = MercenaryPanel.MERCENARY_COSTS.get(mercenary_type, 0)
+        
+        # Check if player has enough money
+        if self.game_state.money < cost:
+            print(f"[UI] Not enough money! Need ${cost}, have ${self.game_state.money}")
+            return False
+        
+        # Deduct money
+        try:
+            self.game_state.deduct_money(cost)
+        except Exception as e:
+            print(f"[UI] Failed to deduct money: {e}")
+            return False
+        
+        print(f"[UI] Sent {mercenary_type.name} mercenary for ${cost}")
+        # Note: Actual sending through network would happen here via DuelSession/SyncEngine
+        # For now, we just deduct the money and return success
+        return True
+
+    def set_multiplayer_mode(self, is_multiplayer: bool) -> None:
+        """
+        Set whether the game is in multiplayer mode.
+        
+        Args:
+            is_multiplayer: True if in multiplayer mode, False otherwise.
+        """
+        if is_multiplayer:
+            self.mercenary_panel.show()
+        else:
+            self.mercenary_panel.hide()
+
     def select_tower(self, tower: Optional[Tower]) -> None:
         """
         Select a tower to display in the info panel.
@@ -172,6 +223,10 @@ class UIManager:
         if self.tower_info_panel.handle_event(event):
             return True
         
+        # Mercenary panel gets second priority
+        if self.mercenary_panel.handle_event(event):
+            return True
+        
         for panel in self.panels:
             if panel.handle_event(event):
                 return True
@@ -181,6 +236,9 @@ class UIManager:
         """Draw all UI panels."""
         for panel in self.panels:
             panel.draw(screen)
+
+        # Draw mercenary panel
+        self.mercenary_panel.draw(screen)
 
         # Draw tower info panel on top
         self.tower_info_panel.draw(screen)

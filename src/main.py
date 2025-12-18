@@ -201,6 +201,7 @@ def main() -> None:
                 elif action == 'single':
                     # Start single player mode
                     game_mode = 'single'
+                    ui_manager.set_multiplayer_mode(False)
                     main_menu.hide()
                     logger.info("Starting single player mode")
                 elif action == 'confirm':
@@ -212,6 +213,7 @@ def main() -> None:
                         if duel_session.host_game(port):
                             game_mode = 'multiplayer'
                             dual_view = DualView(SCREEN_WIDTH, SCREEN_HEIGHT)
+                            ui_manager.set_multiplayer_mode(True)
                             main_menu.set_status("Waiting for opponent...", is_error=False)
                         else:
                             main_menu.set_status("Failed to host game", is_error=True)
@@ -222,6 +224,7 @@ def main() -> None:
                         if duel_session.join_game(ip, port):
                             game_mode = 'multiplayer'
                             dual_view = DualView(SCREEN_WIDTH, SCREEN_HEIGHT)
+                            ui_manager.set_multiplayer_mode(True)
                             main_menu.hide()
                             logger.info("Joined game successfully")
                         else:
