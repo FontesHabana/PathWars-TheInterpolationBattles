@@ -279,15 +279,15 @@ class UIManager:
         # Get sprite for tower type
         from graphics.assets import AssetManager
         
-        # Map tower type to sprite name
+        # Map tower type to sprite name (using actual tower sprite names)
         sprite_name_map = {
-            TowerType.DEAN: "tower_dean",
-            TowerType.CALCULUS: "tower_calculus",
-            TowerType.PHYSICS: "tower_physics",
-            TowerType.STATISTICS: "tower_statistics",
+            TowerType.DEAN: "dean_idle",
+            TowerType.CALCULUS: "calculus_idle",
+            TowerType.PHYSICS: "physics_idle",
+            TowerType.STATISTICS: "statistics_idle",
         }
         
-        sprite_name = sprite_name_map.get(self.selected_tower_type, "tower_dean")
+        sprite_name = sprite_name_map.get(self.selected_tower_type, "dean_idle")
         sprite = AssetManager.get_sprite(sprite_name)
         
         if sprite:
