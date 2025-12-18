@@ -70,9 +70,8 @@ class MercenaryFactory:
         if mercenary_class is None:
             raise ValueError(f"Unknown mercenary type: {mercenary_type}")
         
-        # Create a temporary instance to get stats
-        temp_mercenary = mercenary_class("temp", "temp")
-        return temp_mercenary.stats.cost
+        # Access the class attribute directly instead of creating an instance
+        return mercenary_class._stats.cost
     
     @staticmethod
     def get_available_types() -> list[MercenaryType]:

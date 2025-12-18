@@ -19,14 +19,16 @@ class MercenaryType(Enum):
 class ReinforcedStudent(BaseMercenary):
     """Reinforced Student: +50% HP, normal speed, cost 100$."""
     
+    _stats = MercenaryStats(
+        base_hp=100,
+        base_speed=1.0,
+        cost=100,
+        display_name="Reinforced Student"
+    )
+    
     @property
     def stats(self) -> MercenaryStats:
-        return MercenaryStats(
-            base_hp=100,
-            base_speed=1.0,
-            cost=100,
-            display_name="Reinforced Student"
-        )
+        return self._stats
     
     @property
     def hp_modifier(self) -> float:
@@ -40,14 +42,16 @@ class ReinforcedStudent(BaseMercenary):
 class SpeedyVariableX(BaseMercenary):
     """Speedy Variable X: -30% HP, +100% speed, cost 75$."""
     
+    _stats = MercenaryStats(
+        base_hp=100,
+        base_speed=1.0,
+        cost=75,
+        display_name="Speedy Variable X"
+    )
+    
     @property
     def stats(self) -> MercenaryStats:
-        return MercenaryStats(
-            base_hp=100,
-            base_speed=1.0,
-            cost=75,
-            display_name="Speedy Variable X"
-        )
+        return self._stats
     
     @property
     def hp_modifier(self) -> float:
@@ -61,14 +65,16 @@ class SpeedyVariableX(BaseMercenary):
 class TankConstantPi(BaseMercenary):
     """Tank Constant Pi: +200% HP, -50% speed, cost 200$."""
     
+    _stats = MercenaryStats(
+        base_hp=100,
+        base_speed=1.0,
+        cost=200,
+        display_name="Tank Constant Pi"
+    )
+    
     @property
     def stats(self) -> MercenaryStats:
-        return MercenaryStats(
-            base_hp=100,
-            base_speed=1.0,
-            cost=200,
-            display_name="Tank Constant Pi"
-        )
+        return self._stats
     
     @property
     def hp_modifier(self) -> float:
