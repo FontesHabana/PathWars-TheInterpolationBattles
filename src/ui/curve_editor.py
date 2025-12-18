@@ -76,6 +76,9 @@ class CurveEditorUI:
         # Mode
         self._mode: EditorMode = EditorMode.NORMAL
 
+        # Enabled state
+        self._enabled: bool = True
+
         # UI Panel
         self._panel: Panel = self._build_panel()
 
@@ -223,6 +226,10 @@ class CurveEditorUI:
         Returns:
             True if the event was consumed, False otherwise.
         """
+        # Return early if not enabled or curve is locked
+        if not self._enabled or self.curve_state.locked:
+            return False
+        
         # Let panel handle events first
         if self._panel.handle_event(event):
             return True
@@ -278,9 +285,14 @@ class CurveEditorUI:
         # Draw the panel
         self._panel.draw(screen)
 
-        # Draw mode indicator
+        # Draw locked indicator if curve is locked
         font = AssetManager.get_font(16)
-        if self._mode == EditorMode.ADD_POINT:
+        if self.curve_state.locked:
+            locked_text = "🔒 Editing Locked"
+            text_surf = font.render(locked_text, True, (255, 100, 100))
+            screen.blit(text_surf, (20, self.screen_height - 60))
+        elif self._mode == EditorMode.ADD_POINT:
+            # Draw mode indicator
             mode_text = "Click on GRID to add a point"
             text_surf = font.render(mode_text, True, (255, 255, 0))
             screen.blit(text_surf, (20, self.screen_height - 60))
@@ -341,5 +353,30 @@ class CurveEditorUI:
             The current EditorMode (NORMAL or ADD_POINT).
         """
         return self._mode
+
+    @property
+    def enabled(self) -> bool:
+        """
+        Get whether the editor is enabled.
+
+        Returns:
+            True if enabled, False otherwise.
+        """
+        return self._enabled
+
+    @enabled.setter
+    def enabled(self, value: bool) -> None:
+        """
+        Set whether the editor is enabled.
+        
+        When disabled, resets dragging state and mode to prevent stuck states.
+
+        Args:
+            value: True to enable, False to disable.
+        """
+        self._enabled = value
+        if not value:
+            self._dragging_index = None
+            self._mode = EditorMode.NORMAL
 
 

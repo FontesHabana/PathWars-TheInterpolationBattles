@@ -79,26 +79,28 @@ class TestCurveStateRemovePoint:
         assert state.control_points == [(0.0, 0.0), (20.0, 20.0)]
 
     def test_remove_point_first_index(self):
-        """Test removing the first point."""
+        """Test removing the first point when more than 2 points exist."""
         state = CurveState()
         state.add_point(0.0, 0.0)
         state.add_point(10.0, 10.0)
+        state.add_point(20.0, 20.0)
         
         result = state.remove_point(0)
         
         assert result is True
-        assert state.control_points == [(10.0, 10.0)]
+        assert state.control_points == [(10.0, 10.0), (20.0, 20.0)]
 
     def test_remove_point_last_index(self):
-        """Test removing the last point."""
+        """Test removing the last point when more than 2 points exist."""
         state = CurveState()
         state.add_point(0.0, 0.0)
         state.add_point(10.0, 10.0)
+        state.add_point(20.0, 20.0)
         
-        result = state.remove_point(1)
+        result = state.remove_point(2)
         
         assert result is True
-        assert state.control_points == [(0.0, 0.0)]
+        assert state.control_points == [(0.0, 0.0), (10.0, 10.0)]
 
     def test_remove_point_invalid_index_negative(self):
         """Test removing a point at a negative index."""
