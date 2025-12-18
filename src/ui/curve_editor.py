@@ -11,6 +11,7 @@ from typing import Optional, List, Tuple
 
 from ui.components import Button, Panel, Label
 from core.curve_state import CurveState
+from core.game_state import GameState
 from graphics.assets import AssetManager
 
 
@@ -31,6 +32,7 @@ class CurveEditorUI:
         curve_state: The CurveState instance managing the control points.
         screen_width: Width of the screen in pixels.
         screen_height: Height of the screen in pixels.
+        game_state: The GameState instance for verifying/deducting money.
     """
 
     # Visual constants
@@ -47,12 +49,20 @@ class CurveEditorUI:
     BUTTON_WIDTH = 180
     BUTTON_HEIGHT = 30
     BUTTON_MARGIN = 10
+    
+    # Interpolation method costs
+    INTERPOLATION_COSTS = {
+        'linear': 0,
+        'lagrange': 50,
+        'spline': 100,
+    }
 
     def __init__(
         self,
         screen_width: int,
         screen_height: int,
         renderer: "Renderer",
+        game_state: GameState,
         curve_state: Optional[CurveState] = None,
     ) -> None:
         """
@@ -62,11 +72,13 @@ class CurveEditorUI:
             screen_width: Width of the screen in pixels.
             screen_height: Height of the screen in pixels.
             renderer: The Renderer instance for coordinate conversion.
+            game_state: The GameState instance for verifying/deducting money.
             curve_state: Optional CurveState instance. Creates a new one if None.
         """
         self.screen_width = screen_width
         self.screen_height = screen_height
         self.renderer = renderer
+        self.game_state = game_state
         self.curve_state = curve_state if curve_state else CurveState()
 
         # Dragging state
@@ -135,7 +147,7 @@ class CurveEditorUI:
 
         # Interpolation method buttons
         btn_linear = Button(
-            "Linear",
+            "Linear (Free)",
             pygame.Rect(
                 panel_x + self.BUTTON_MARGIN,
                 panel_y + 140,
@@ -147,7 +159,7 @@ class CurveEditorUI:
         panel.add(btn_linear)
 
         btn_lagrange = Button(
-            "Lagrange",
+            "Lagrange ($50)",
             pygame.Rect(
                 panel_x + self.BUTTON_MARGIN,
                 panel_y + 180,
@@ -159,7 +171,7 @@ class CurveEditorUI:
         panel.add(btn_lagrange)
 
         btn_spline = Button(
-            "Spline",
+            "Spline ($100)",
             pygame.Rect(
                 panel_x + self.BUTTON_MARGIN,
                 panel_y + 220,
@@ -185,8 +197,37 @@ class CurveEditorUI:
             self.curve_state.remove_point(self.curve_state.get_point_count() - 1)
 
     def _set_method(self, method: str) -> None:
-        """Set the interpolation method."""
+        """
+        Set the interpolation method, with cost verification.
+        
+        Args:
+            method: The interpolation method to set ('linear', 'lagrange', 'spline').
+        """
+        # Check if already using this method
+        if self.curve_state.interpolation_method == method:
+            print(f"[CurveEditor] Already using {method} interpolation")
+            return
+        
+        # Get cost for the new method
+        cost = self.INTERPOLATION_COSTS.get(method, 0)
+        
+        # Check if player has enough money
+        if self.game_state.money < cost:
+            print(f"[CurveEditor] Insufficient funds! Need ${cost}, have ${self.game_state.money}")
+            return
+        
+        # Deduct money
+        if cost > 0:
+            try:
+                self.game_state.deduct_money(cost)
+                print(f"[CurveEditor] Deducted ${cost} for {method} interpolation")
+            except Exception as e:
+                print(f"[CurveEditor] Failed to deduct money: {e}")
+                return
+        
+        # Set the method
         self.curve_state.set_method(method)
+        print(f"[CurveEditor] Changed interpolation method to {method}")
 
     def _find_point_at(
         self, x: int, y: int

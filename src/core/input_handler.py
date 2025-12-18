@@ -32,7 +32,7 @@ class InputHandler:
         self.renderer = renderer
         
         # State for "Place Tower" mode (placeholder for UI logic)
-        self.selected_tower_type: Optional[TowerType] = TowerType.DEAN
+        self.selected_tower_type: Optional[TowerType] = None
         
         # Tower selection state
         self._selected_tower: Optional[Tower] = None
@@ -141,12 +141,28 @@ class InputHandler:
         if not self.grid.is_valid_position(grid_x, grid_y):
             return
 
-        # LOGIC: If in Planning phase and has money, try place tower
-        if self.game_state.current_phase == GamePhase.PLANNING:
-            self._try_place_tower(grid_x, grid_y)
+        # Check if there's already a tower at this position
+        existing_tower = self._find_tower_at(grid_x, grid_y)
+        
+        if existing_tower:
+            # Select the existing tower to show info panel
+            self.select_tower(existing_tower)
+            print(f"[Input] Selected {existing_tower.tower_type.name} tower at ({grid_x}, {grid_y})")
+            return
+
+        # If clicked on empty area with a tower selected for placement, deselect
+        if self.selected_tower_type is not None:
+            # Try to place tower
+            if self.game_state.current_phase == GamePhase.PLANNING:
+                self._try_place_tower(grid_x, grid_y)
+        # If no tower selected and clicked empty area, do nothing (already deselected)
 
     def _try_place_tower(self, x: int, y: int):
         """Attempt to place a tower at grid coordinates."""
+        # Check if we have a tower type selected
+        if self.selected_tower_type is None:
+            return
+            
         if self.grid.is_occupied(x, y):
             print(f"Cell {x},{y} is occupied")
             return

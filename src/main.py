@@ -80,7 +80,7 @@ def main() -> None:
     curve_state = CurveState()
     # Initial state: Only 2 points (Start and End) as per rules
     curve_state.initialize_default_points(start_x=0.0, end_x=19.0, y=10.0)
-    curve_editor = CurveEditorUI(SCREEN_WIDTH, SCREEN_HEIGHT, renderer, curve_state)
+    curve_editor = CurveEditorUI(SCREEN_WIDTH, SCREEN_HEIGHT, renderer, game_state, curve_state)
 
     # Initialize Ready Manager
     ready_manager = ReadyManager(player_count=1, ready_timeout=30.0)
@@ -201,6 +201,7 @@ def main() -> None:
                 elif action == 'single':
                     # Start single player mode
                     game_mode = 'single'
+                    ui_manager.set_multiplayer_mode(False)
                     main_menu.hide()
                     logger.info("Starting single player mode")
                 elif action == 'confirm':
@@ -212,6 +213,7 @@ def main() -> None:
                         if duel_session.host_game(port):
                             game_mode = 'multiplayer'
                             dual_view = DualView(SCREEN_WIDTH, SCREEN_HEIGHT)
+                            ui_manager.set_multiplayer_mode(True)
                             main_menu.set_status("Waiting for opponent...", is_error=False)
                         else:
                             main_menu.set_status("Failed to host game", is_error=True)
@@ -222,6 +224,7 @@ def main() -> None:
                         if duel_session.join_game(ip, port):
                             game_mode = 'multiplayer'
                             dual_view = DualView(SCREEN_WIDTH, SCREEN_HEIGHT)
+                            ui_manager.set_multiplayer_mode(True)
                             main_menu.hide()
                             logger.info("Joined game successfully")
                         else:
@@ -304,6 +307,10 @@ def main() -> None:
             if event.type == pygame.QUIT:
                 running = False
                 break
+            
+            # Track mouse motion for tower preview
+            if event.type == pygame.MOUSEMOTION:
+                ui_manager.update_mouse_position(event.pos, renderer)
                 
             # UI handles event first
             if ui_manager.handle_event(event):
@@ -383,6 +390,9 @@ def main() -> None:
         if game_mode == 'multiplayer' and dual_view:
             dual_view.draw_divider(screen)
             dual_view.draw_labels(screen)
+
+        # Draw tower preview (if tower selected and in planning phase)
+        ui_manager.draw_tower_preview(screen, renderer)
 
         # Draw UI
         ui_manager.draw(screen)
