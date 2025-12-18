@@ -29,6 +29,7 @@ from ui.curve_editor import CurveEditorUI
 from ui.wave_banner import WaveBanner
 from ui.result_screen import ResultScreen
 from ui.main_menu import MainMenu
+from ui.codex_panel import CodexPanel
 from core.curve_state import CurveState
 from multiplayer.duel_session import DuelSession, DuelPhase
 from multiplayer.dual_view import DualView
@@ -55,6 +56,9 @@ def main() -> None:
 
     # 2. Initialize Main Menu
     main_menu = MainMenu(SCREEN_WIDTH, SCREEN_HEIGHT)
+    
+    # Initialize Codex Panel
+    codex_panel = CodexPanel(SCREEN_WIDTH, SCREEN_HEIGHT)
     
     # Game mode state
     game_mode: Optional[str] = None  # 'single', 'multiplayer', None
@@ -161,6 +165,24 @@ def main() -> None:
     while running:
         dt = clock.tick(60) / 1000.0
         
+        # Handle codex panel first (if visible)
+        if codex_panel.visible:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+                    break
+                
+                action = codex_panel.handle_event(event)
+                if action == 'close':
+                    codex_panel.hide()
+                    logger.info("Closing codex panel")
+            
+            # Draw codex panel
+            screen.fill((0, 0, 0))
+            codex_panel.draw(screen)
+            pygame.display.flip()
+            continue
+        
         # Handle main menu first (if visible)
         if main_menu.visible:
             for event in pygame.event.get():
@@ -172,6 +194,10 @@ def main() -> None:
                 if action == 'quit':
                     running = False
                     break
+                elif action == 'codex':
+                    # Show codex panel
+                    codex_panel.show()
+                    logger.info("Opening codex panel")
                 elif action == 'single':
                     # Start single player mode
                     game_mode = 'single'

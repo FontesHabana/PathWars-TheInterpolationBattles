@@ -9,6 +9,7 @@ import pygame
 from typing import Dict, Any, Optional, Union
 from entities.tower import Tower, TowerType
 from entities.enemy import Enemy, EnemyType
+from graphics.assets import AssetManager
 from data.lore import (
     get_tower_display_name,
     get_tower_lore,
@@ -31,9 +32,10 @@ class CardWidget:
     """
     
     # Card dimensions
-    CARD_WIDTH = 400
+    CARD_WIDTH = 700
     CARD_HEIGHT = 500
     PADDING = 20
+    IMAGE_SIZE = 320  # Size for entity image display (much larger for detail)
     
     # Colors
     BG_COLOR = (30, 30, 50)
@@ -41,6 +43,7 @@ class CardWidget:
     TEXT_COLOR = (255, 255, 255)
     STAT_COLOR = (200, 200, 200)
     LORE_COLOR = (180, 180, 220)
+    IMAGE_BG_COLOR = (50, 50, 70)
     
     def __init__(self, x: int, y: int) -> None:
         """
@@ -75,23 +78,28 @@ class CardWidget:
         pygame.draw.rect(surface, self.BG_COLOR, self._rect)
         pygame.draw.rect(surface, self.BORDER_COLOR, self._rect, 3)
         
+        # Draw tower image on the left side
+        self._draw_tower_image(surface, tower_type)
+        
+        # Draw content on the right side
+        content_x = self._x + self.IMAGE_SIZE + self.PADDING * 2
+        content_width = self.CARD_WIDTH - self.IMAGE_SIZE - self.PADDING * 3
         y_offset = self._y + self.PADDING
         
         # Draw tower name
         name = get_tower_display_name(tower_type)
         name_text = self._name_font.render(name, True, self.TEXT_COLOR)
-        name_rect = name_text.get_rect(centerx=self._x + self.CARD_WIDTH // 2, top=y_offset)
-        surface.blit(name_text, name_rect)
-        y_offset += 50
+        surface.blit(name_text, (content_x, y_offset))
+        y_offset += 45
         
         # Draw stats
         stats = Tower._TOWER_STATS[tower_type]
-        y_offset = self._draw_stats(surface, stats, y_offset)
-        y_offset += 20
+        y_offset = self._draw_stats(surface, stats, content_x, y_offset)
+        y_offset += 15
         
         # Draw lore
         lore = get_tower_lore(tower_type)
-        self._draw_lore(surface, lore, y_offset)
+        self._draw_lore(surface, lore, content_x, content_width, y_offset)
     
     def draw_enemy_card(
         self,
@@ -109,28 +117,114 @@ class CardWidget:
         pygame.draw.rect(surface, self.BG_COLOR, self._rect)
         pygame.draw.rect(surface, self.BORDER_COLOR, self._rect, 3)
         
+        # Draw enemy image on the left side
+        self._draw_enemy_image(surface, enemy_type)
+        
+        # Draw content on the right side
+        content_x = self._x + self.IMAGE_SIZE + self.PADDING * 2
+        content_width = self.CARD_WIDTH - self.IMAGE_SIZE - self.PADDING * 3
         y_offset = self._y + self.PADDING
         
         # Draw enemy name
         name = get_enemy_display_name(enemy_type)
         name_text = self._name_font.render(name, True, self.TEXT_COLOR)
-        name_rect = name_text.get_rect(centerx=self._x + self.CARD_WIDTH // 2, top=y_offset)
-        surface.blit(name_text, name_rect)
-        y_offset += 50
+        surface.blit(name_text, (content_x, y_offset))
+        y_offset += 45
         
         # Draw stats
         stats = Enemy._ENEMY_STATS[enemy_type]
-        y_offset = self._draw_stats(surface, stats, y_offset)
-        y_offset += 20
+        y_offset = self._draw_stats(surface, stats, content_x, y_offset)
+        y_offset += 15
         
         # Draw lore
         lore = get_enemy_lore(enemy_type)
-        self._draw_lore(surface, lore, y_offset)
+        self._draw_lore(surface, lore, content_x, content_width, y_offset)
+    
+    def _draw_tower_image(
+        self,
+        surface: pygame.Surface,
+        tower_type: TowerType
+    ) -> None:
+        """
+        Draw tower image on the left side of the card.
+        
+        Args:
+            surface: Pygame surface to draw on.
+            tower_type: The type of tower.
+        """
+        # Load sprite directly from file without pre-scaling for better quality
+        sprite_path = f"assets/sprites/towers/{tower_type.name.lower()}_idle.png"
+        
+        try:
+            # Load original image at full resolution
+            sprite = pygame.image.load(sprite_path).convert_alpha()
+        except (pygame.error, FileNotFoundError):
+            # Fallback to AssetManager if file not found
+            sprite_name = f"{tower_type.name.lower()}_idle"
+            sprite = AssetManager.get_sprite(sprite_name)
+        
+        if sprite:
+            # Create image background on the left side
+            image_rect = pygame.Rect(
+                self._x + self.PADDING,
+                self._y + self.PADDING,
+                self.IMAGE_SIZE,
+                self.IMAGE_SIZE
+            )
+            pygame.draw.rect(surface, self.IMAGE_BG_COLOR, image_rect)
+            pygame.draw.rect(surface, self.BORDER_COLOR, image_rect, 2)
+            
+            # Scale sprite to fill most of the area with smoothscale for best quality
+            target_size = int(self.IMAGE_SIZE * 0.95)
+            scaled_sprite = pygame.transform.smoothscale(sprite, (target_size, target_size))
+            sprite_rect = scaled_sprite.get_rect(center=image_rect.center)
+            surface.blit(scaled_sprite, sprite_rect)
+    
+    def _draw_enemy_image(
+        self,
+        surface: pygame.Surface,
+        enemy_type: EnemyType
+    ) -> None:
+        """
+        Draw enemy image on the left side of the card.
+        
+        Args:
+            surface: Pygame surface to draw on.
+            enemy_type: The type of enemy.
+        """
+        # Load sprite directly from file without pre-scaling for better quality
+        sprite_path = f"assets/sprites/enemies/{enemy_type.name.lower()}_walk.png"
+        
+        try:
+            # Load original image at full resolution
+            sprite = pygame.image.load(sprite_path).convert_alpha()
+        except (pygame.error, FileNotFoundError):
+            # Fallback to AssetManager if file not found
+            sprite_name = f"{enemy_type.name.lower()}_walk"
+            sprite = AssetManager.get_sprite(sprite_name)
+        
+        if sprite:
+            # Create image background on the left side
+            image_rect = pygame.Rect(
+                self._x + self.PADDING,
+                self._y + self.PADDING,
+                self.IMAGE_SIZE,
+                self.IMAGE_SIZE
+            )
+            pygame.draw.rect(surface, self.IMAGE_BG_COLOR, image_rect)
+            pygame.draw.rect(surface, self.BORDER_COLOR, image_rect, 2)
+            
+            # Scale sprite to fill most of the area with smoothscale for best quality
+            target_size = int(self.IMAGE_SIZE * 0.95)
+            scaled_sprite = pygame.transform.smoothscale(sprite, (target_size, target_size))
+            sprite_rect = scaled_sprite.get_rect(center=image_rect.center)
+            surface.blit(scaled_sprite, sprite_rect)
     
     def _draw_stats(
         self,
         surface: pygame.Surface,
         stats: Dict[str, Any],
+        x_offset: int,
         y_offset: int
     ) -> int:
         """
@@ -139,13 +233,12 @@ class CardWidget:
         Args:
             surface: Pygame surface to draw on.
             stats: Dictionary of stats to display.
+            x_offset: X position for drawing.
             y_offset: Current Y offset for drawing.
             
         Returns:
             New Y offset after drawing stats.
         """
-        x_offset = self._x + self.PADDING
-        
         for key, value in stats.items():
             # Format stat name
             stat_name = key.replace('_', ' ').title()
@@ -163,7 +256,7 @@ class CardWidget:
                 self.STAT_COLOR
             )
             surface.blit(stat_text, (x_offset, y_offset))
-            y_offset += 30
+            y_offset += 28
         
         return y_offset
     
@@ -171,6 +264,8 @@ class CardWidget:
         self,
         surface: pygame.Surface,
         lore: str,
+        x_offset: int,
+        max_width: int,
         y_offset: int
     ) -> None:
         """
@@ -179,11 +274,10 @@ class CardWidget:
         Args:
             surface: Pygame surface to draw on.
             lore: Lore text to display.
+            x_offset: X position for drawing.
+            max_width: Maximum width for text wrapping.
             y_offset: Current Y offset for drawing.
         """
-        x_offset = self._x + self.PADDING
-        max_width = self.CARD_WIDTH - (2 * self.PADDING)
-        
         # Word wrap the lore text
         words = lore.split()
         lines = []
@@ -210,4 +304,4 @@ class CardWidget:
         for line in lines:
             line_text = self._lore_font.render(line, True, self.LORE_COLOR)
             surface.blit(line_text, (x_offset, y_offset))
-            y_offset += 25
+            y_offset += 24
