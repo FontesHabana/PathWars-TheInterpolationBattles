@@ -37,25 +37,25 @@ La siguiente hoja de ruta prioriza la **Arquitectura Multijugador** y la **Calid
 **Objetivo:** Establecer una arquitectura sólida y escalable para el multijugador.
 
 ### 14.1. Implementar GameServer (Autoridad)
-- [ ] Crear clase `GameServer` que gestione el estado autoritativo del juego.
-- [ ] Implementar validación de comandos del lado del servidor.
-- [ ] Gestionar conexiones de múltiples clientes (preparar para escalabilidad).
+- [x] Crear clase `GameServer` que gestione el estado autoritativo del juego.
+- [x] Implementar validación de comandos del lado del servidor.
+- [x] Gestionar conexiones de múltiples clientes (preparar para escalabilidad).
 
 ### 14.2. Implementar GameClient
-- [ ] Crear clase `GameClient` que maneje la conexión con el servidor.
-- [ ] Implementar envío y recepción de comandos.
-- [ ] Separar lógica de renderizado (local) de lógica de juego (remota).
+- [x] Crear clase `GameClient` que maneje la conexión con el servidor.
+- [x] Implementar envío y recepción de comandos.
+- [x] Separar lógica de renderizado (local) de lógica de juego (remota).
 
 ### 14.3. Patrón Command para Sincronización de Red
-- [ ] Diseñar interfaz `GameCommand` (tipo, player_id, data, timestamp).
-- [ ] Implementar comandos específicos:
-    - [ ] `PlaceTowerCommand`
-    - [ ] `ModifyControlPointCommand`
-    - [ ] `SendMercenaryCommand`
-    - [ ] `ResearchCommand`
-    - [ ] `ReadyCommand` (para transición de fase)
-- [ ] Serialización y deserialización de comandos (JSON).
-- [ ] Queue de comandos con timestamp para sincronización.
+- [x] Diseñar interfaz `GameCommand` (tipo, player_id, data, timestamp).
+- [x] Implementar comandos específicos:
+    - [x] `PlaceTowerCommand`
+    - [x] `ModifyControlPointCommand`
+    - [x] `SendMercenaryCommand`
+    - [x] `ResearchCommand`
+    - [x] `ReadyCommand` (para transición de fase)
+- [x] Serialización y deserialización de comandos (JSON).
+- [x] Queue de comandos con timestamp para sincronización.
 
 ### 14.4. Separación de GameState (Local vs Remoto)
 - [ ] `GameState` (Remoto): HP, dinero, torres, puntos de control, fase actual.
@@ -64,9 +64,9 @@ La siguiente hoja de ruta prioriza la **Arquitectura Multijugador** y la **Calid
 - [ ] Interpolación local para suavizado de movimientos.
 
 ### 14.5. Unit Tests
-- [ ] Tests de serialización/deserialización de comandos.
-- [ ] Tests de validación de comandos en el servidor.
-- [ ] Tests de sincronización de estado.
+- [x] Tests de serialización/deserialización de comandos.
+- [x] Tests de validación de comandos en el servidor.
+- [x] Tests de sincronización de estado.
 
 ---
 
