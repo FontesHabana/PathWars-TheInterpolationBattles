@@ -533,7 +533,10 @@ class TestServerClientIntegration:
         # Start server
         assert server.start(port) is True
         
-        # Create client (bypass singleton)
+        # Create client with separate NetworkManager instance
+        # Note: We bypass the singleton pattern here because we need both
+        # a server and client NetworkManager in the same process for testing.
+        # This is a known limitation of the singleton pattern in test scenarios.
         NetworkManager._instance = None
         client = GameClient(player_id="player1")
         
@@ -561,7 +564,10 @@ class TestServerClientIntegration:
         # Start server
         assert server.start(port) is True
         
-        # Create client (bypass singleton)
+        # Create client with separate NetworkManager instance
+        # Note: We bypass the singleton pattern here because we need both
+        # a server and client NetworkManager in the same process for testing.
+        # This is a known limitation of the singleton pattern in test scenarios.
         NetworkManager._instance = None
         client = GameClient(player_id="player1")
         
