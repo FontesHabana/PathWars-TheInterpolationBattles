@@ -14,9 +14,9 @@ from entities.base import Entity, EntityState, EntityType, Vector2
 class TowerType(Enum):
     """Enumeration of tower types in the game."""
     DEAN = auto()        # Tank/Blocker - high HP, low damage
-    CALCULUS = auto()    # Ranged - fast attack, medium damage
-    PHYSICS = auto()     # Cannon/AoE - slow attack, high damage
-    STATISTICS = auto()  # Support/Slow - debuff, no damage
+    NUMERIC_CP = auto()    # Ranged - fast attack, medium damage
+    LOGIC = auto()     # Cannon/AoE - slow attack, high damage
+    FERNANDO = auto()  # Support/Slow - debuff, no damage
 
 
 class TowerLevel(Enum):
@@ -57,7 +57,7 @@ class Tower(Entity):
             "splash_radius": 0.0,
             "slow_amount": 0.0,
         },
-        TowerType.CALCULUS: {
+        TowerType.NUMERIC_CP: {
             "damage": 25,
             "attack_range": 5.0,
             "cooldown": 0.5,
@@ -65,7 +65,8 @@ class Tower(Entity):
             "splash_radius": 0.0,
             "slow_amount": 0.0,
         },
-        TowerType.PHYSICS: {
+        TowerType.LOGIC
+: {
             "damage": 50,
             "attack_range": 4.0,
             "cooldown": 2.0,
@@ -73,7 +74,7 @@ class Tower(Entity):
             "splash_radius": 2.0,
             "slow_amount": 0.0,
         },
-        TowerType.STATISTICS: {
+        TowerType.FERNANDO: {
             "damage": 0,
             "attack_range": 3.5,
             "cooldown": 1.0,
@@ -98,9 +99,10 @@ class Tower(Entity):
     # Upgrade costs by tower type
     _UPGRADE_COSTS = {
         TowerType.DEAN: 75,       # Base cost $50, upgrade $75
-        TowerType.CALCULUS: 100,  # Base cost $75, upgrade $100
-        TowerType.PHYSICS: 150,   # Base cost $100, upgrade $150
-        TowerType.STATISTICS: 90, # Base cost $60, upgrade $90
+        TowerType.NUMERIC_CP: 100,  # Base cost $75, upgrade $100
+        TowerType.LOGIC
+: 150,   # Base cost $100, upgrade $150
+        TowerType.FERNANDO: 90, # Base cost $60, upgrade $90
     }
 
     def __init__(
@@ -190,9 +192,10 @@ class Tower(Entity):
         """
         sprite_map = {
             TowerType.DEAN: "dean_idle",
-            TowerType.CALCULUS: "calculus_idle",
-            TowerType.PHYSICS: "physics_idle",
-            TowerType.STATISTICS: "statistics_idle",
+            TowerType.NUMERIC_CP: "calculus_idle",
+            TowerType.LOGIC
+    : "LOGIC_idle",
+            TowerType.FERNANDO: "FERNANDO_idle",
         }
         return sprite_map.get(tower_type, "dean_idle")
 
@@ -428,8 +431,10 @@ class Tower(Entity):
             stun_effect = StatusEffect(EffectType.STUN, self._stun_duration)
             target.apply_effect(stun_effect)
 
-        elif self._tower_type == TowerType.PHYSICS and self._splash_radius > 0:
-            # PHYSICS: AoE damage to nearby enemies
+        elif self._tower_type == TowerType.LOGIC
+ and self._splash_radius > 0:
+            # LOGIC
+            : AoE damage to nearby enemies
             if all_enemies:
                 for enemy in all_enemies:
                     if enemy is target:
@@ -440,8 +445,8 @@ class Tower(Entity):
                     if distance <= self._splash_radius:
                         enemy.take_damage(self._damage)
 
-        elif self._tower_type == TowerType.STATISTICS and self._slow_amount > 0:
-            # STATISTICS: Apply slow effect
+        elif self._tower_type == TowerType.FERNANDO and self._slow_amount > 0:
+            # FERNANDO: Apply slow effect
             slow_effect = StatusEffect(
                 EffectType.SLOW, self._slow_duration, self._slow_amount
             )
