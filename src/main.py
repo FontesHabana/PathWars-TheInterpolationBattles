@@ -80,7 +80,7 @@ def main() -> None:
     curve_state = CurveState()
     # Initial state: Only 2 points (Start and End) as per rules
     curve_state.initialize_default_points(start_x=0.0, end_x=19.0, y=10.0)
-    curve_editor = CurveEditorUI(SCREEN_WIDTH, SCREEN_HEIGHT, renderer, curve_state)
+    curve_editor = CurveEditorUI(SCREEN_WIDTH, SCREEN_HEIGHT, renderer, curve_state, game_state)
 
     # Initialize Ready Manager
     ready_manager = ReadyManager(player_count=1, ready_timeout=30.0)
