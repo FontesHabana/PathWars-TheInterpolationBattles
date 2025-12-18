@@ -19,6 +19,7 @@ from core.input_handler import InputHandler
 from core.combat_manager import CombatManager
 from core.wave_manager import WaveManager
 from core.effects import EffectManager
+from core.ready_manager import ReadyManager, ReadyTrigger
 from graphics.renderer import Renderer
 from graphics.assets import AssetManager
 from entities.factory import EntityFactory
@@ -58,10 +59,21 @@ def main() -> None:
     # Initialize Curve Editor
     curve_state = CurveState()
     # Initial state: Only 2 points (Start and End) as per rules
-    curve_state.add_point(0.0, 10.0)
-    curve_state.add_point(19.0, 10.0)
+    curve_state.initialize_default_points(start_x=0.0, end_x=19.0, y=10.0)
     curve_editor = CurveEditorUI(SCREEN_WIDTH, SCREEN_HEIGHT, renderer, curve_state)
 
+    # Initialize Ready Manager
+    ready_manager = ReadyManager(player_count=1, ready_timeout=30.0)
+    
+    def on_ready_trigger(trigger: ReadyTrigger) -> None:
+        """Handle ready trigger - lock curve and transition to battle."""
+        logger.info(f"Ready triggered: {trigger.name}")
+        curve_state.lock()
+        curve_editor.enabled = False
+        # Note: Actual phase transition would happen here in full implementation
+        # game_state.change_phase(GamePhase.BATTLE)
+
+    ready_manager.subscribe(on_ready_trigger)
 
     def get_enemy_path() -> List[Tuple[float, float]]:
         """Get enemy path from curve editor."""
@@ -175,6 +187,10 @@ def main() -> None:
             
         # Sync tower selection
         input_handler.selected_tower_type = ui_manager.selected_tower_type
+            
+        # Update Ready Manager during PLANNING phase
+        if game_state.current_phase == GamePhase.PLANNING:
+            ready_manager.update(dt)
             
         # Update
         entities = game_state.entities_collection
